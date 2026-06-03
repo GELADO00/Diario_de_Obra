@@ -145,6 +145,22 @@ input[type=range]{width:100%;accent-color:var(--amber);margin-top:8px;cursor:poi
 .menu-divider{height:1px;background:rgba(255,255,255,.08);margin:6px 16px;}
 .menu-user-wrap{display:flex;align-items:center;gap:10px;padding:14px 20px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;}
 .menu-user-avatar{width:34px;height:34px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:white;flex-shrink:0;}
+
+/* AVISOS */
+.bell-btn{position:relative;background:none;border:none;color:rgba(255,255,255,.75);cursor:pointer;padding:6px 8px;border-radius:8px;transition:background .15s;font-size:20px;line-height:1;}
+.bell-btn:hover{background:rgba(255,255,255,.1);}
+.bell-badge{position:absolute;top:1px;right:1px;min-width:16px;height:16px;background:#EF4444;border-radius:8px;font-size:10px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;padding:0 4px;pointer-events:none;}
+.avisos-dropdown{position:fixed;top:64px;right:16px;width:340px;background:var(--paper);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.18);z-index:2000;display:none;overflow:hidden;}
+.avisos-dropdown.open{display:block;animation:slideUp .15s;}
+.aviso-card{padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
+.aviso-card:last-child{border-bottom:none;}
+.aviso-card:hover{background:var(--bg);}
+.aviso-card.nao-lido{background:#FFFBF0;}
+.aviso-card.nao-lido:hover{background:#FEF3C7;}
+.aviso-tipo-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.aviso-msg{font-size:13px;font-weight:600;color:var(--ink);line-height:1.4;}
+.aviso-obra{font-size:12px;color:var(--amber);margin-top:2px;}
+.aviso-meta{font-size:11px;color:var(--muted);margin-top:3px;}
 </style>
 </head>
 <body>
@@ -189,6 +205,9 @@ input[type=range]{width:100%;accent-color:var(--amber);margin-top:8px;cursor:poi
     <button onclick="navegarPara('calendario','calendario')" class="menu-item" id="menu-calendario">
       <span class="menu-icon">📅</span>Calendário
     </button>
+    <button onclick="verCentralAvisos()" class="menu-item" id="menu-avisos">
+      <span class="menu-icon">🔔</span>Avisos<span id="menu-avisos-badge" style="display:none;background:#EF4444;color:white;border-radius:8px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:6px">0</span>
+    </button>
   </nav>
   <div class="menu-user-wrap">
     <div class="menu-user-avatar" id="menu-user-avatar">?</div>
@@ -210,12 +229,27 @@ input[type=range]{width:100%;accent-color:var(--amber);margin-top:8px;cursor:poi
       <div class="user-info">
         <span id="user-nome-header"></span>
         <span class="user-badge" id="user-perfil-header"></span>
+        <div style="position:relative">
+          <button class="bell-btn" id="btn-bell" onclick="toggleDropdownAvisos()" title="Avisos">
+            🔔<span class="bell-badge" id="bell-badge" style="display:none">0</span>
+          </button>
+          <div class="avisos-dropdown" id="avisos-dropdown">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+              <span style="font-weight:700;font-size:14px">Avisos</span>
+              <button onclick="verCentralAvisos()" style="background:none;border:none;color:var(--amber);font-size:12px;cursor:pointer;font-weight:600">Ver todos →</button>
+            </div>
+            <div id="dropdown-avisos-lista"></div>
+          </div>
+        </div>
         <button class="btn-logout" onclick="logout()">Sair</button>
       </div>
     </div>
   </header>
 
   <main>
+    <!-- AVISOS -->
+    <div id="view-avisos" style="display:none"></div>
+
     <!-- CALENDÁRIO -->
     <div id="view-calendario" style="display:none;padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
@@ -554,7 +588,7 @@ function navegarVisaoGeral(){
 }
 
 function setMenuAtivo(id){
-  ['visaogeral','calendario'].forEach(mid=>{
+  ['visaogeral','calendario','avisos'].forEach(mid=>{
     const btn = document.getElementById('menu-'+mid);
     if(btn) btn.classList.toggle('active', mid===id);
   });
@@ -618,6 +652,7 @@ let abaAtiva = "geral";
 let debTimer = null;
 let editandoId = null;
 let usuarioAtual = null; // {nome, perfil}
+let avisos = [];
 
 // ── UTILS ──────────────────────────────────────────────────────────────
 // uid, hoje, toInputDate, fmtDate, calcPrazoFinal, diasR, safeArr,
@@ -790,6 +825,7 @@ async function carregar(){
   }finally{
     hideLoading();
     renderLista();
+    loadAvisos().then(()=>mostrarPopupAvisos());
   }
 }
 
@@ -1790,11 +1826,196 @@ function imprimirRelatorio(){
 }
 
 
+// ── CENTRAL DE AVISOS ─────────────────────────────────────────────────────────
+const AVISO_TIPO_CFG = {
+  nova_obra:      {icon:'🏗️'},
+  nova_pendencia: {icon:'⚡'},
+  mensagem_adm:   {icon:'✉️'},
+};
+
+async function loadAvisos(){
+  if(isGestor()) return;
+  try{
+    const dest = isAdmin() ? '' : usuarioAtual.nome;
+    const r = await chamarAPI({action:'loadAvisos', destinatario:dest});
+    if(r && r.avisos){ avisos=r.avisos; renderBadgeAvisos(); }
+  }catch(e){ /* avisos não são críticos */ }
+}
+
+function renderBadgeAvisos(){
+  const naoLidos = avisos.filter(a=>!a.lido).length;
+  const badge  = document.getElementById('bell-badge');
+  const mBadge = document.getElementById('menu-avisos-badge');
+  if(badge){  badge.style.display  = naoLidos>0?'':'none'; badge.textContent  = naoLidos>9?'9+':naoLidos; }
+  if(mBadge){ mBadge.style.display = naoLidos>0?'':'none'; mBadge.textContent = naoLidos>9?'9+':naoLidos; }
+}
+
+function toggleDropdownAvisos(){
+  const dd = document.getElementById('avisos-dropdown');
+  if(!dd) return;
+  const aberto = dd.classList.contains('open');
+  if(aberto){
+    dd.classList.remove('open');
+  } else {
+    renderDropdownAvisos();
+    dd.classList.add('open');
+    setTimeout(()=>document.addEventListener('click', fecharDropdownFora, {once:true}), 10);
+  }
+}
+
+function fecharDropdownFora(e){
+  const dd   = document.getElementById('avisos-dropdown');
+  const bell = document.getElementById('btn-bell');
+  if(dd && !dd.contains(e.target) && e.target!==bell && !bell.contains(e.target)){
+    dd.classList.remove('open');
+  } else if(dd && dd.classList.contains('open')){
+    document.addEventListener('click', fecharDropdownFora, {once:true});
+  }
+}
+
+function avisoCardHTML(a, compacto=false){
+  const cfg  = AVISO_TIPO_CFG[a.tipo] || {icon:'🔔'};
+  const data = a.data ? fmtDate(a.data.split('T')[0]) : '';
+  return `<div class="aviso-card ${a.lido?'':'nao-lido'}" onclick="abrirAviso('${a.id}','${a.obraId||''}')">
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <span class="aviso-tipo-icon">${cfg.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div class="aviso-msg">${a.mensagem||''}</div>
+        ${a.obraNome?`<div class="aviso-obra">📍 ${a.obraNome}</div>`:''}
+        <div class="aviso-meta">${data}${a.remetente?' · '+a.remetente:''}</div>
+      </div>
+      ${!a.lido&&!compacto?`<button onclick="event.stopPropagation();marcarLidoAviso('${a.id}')" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;color:var(--muted);flex-shrink:0;align-self:center">Lido</button>`:''}
+    </div>
+  </div>`;
+}
+
+function renderDropdownAvisos(){
+  const lista = document.getElementById('dropdown-avisos-lista');
+  if(!lista) return;
+  const naoLidos = avisos.filter(a=>!a.lido).slice(0,5);
+  lista.innerHTML = naoLidos.length
+    ? naoLidos.map(a=>avisoCardHTML(a,true)).join('')
+    : '<p style="padding:20px 16px;color:var(--muted);font-size:13px;text-align:center">Nenhum aviso não lido</p>';
+}
+
+async function abrirAviso(id, obraId){
+  document.getElementById('avisos-dropdown')?.classList.remove('open');
+  fecharModal('modal-avisos-popup');
+  if(id) await marcarLidoAviso(id);
+  if(obraId) irDetalhe(Number(obraId)||obraId);
+}
+
+async function marcarLidoAviso(id){
+  avisos = avisos.map(a=>a.id===id?{...a,lido:true}:a);
+  renderBadgeAvisos();
+  const central = document.getElementById('view-avisos');
+  if(central?.style.display!=='none') renderCentralAvisos();
+  try{ await chamarAPI({action:'marcarLido',id}); }catch(e){}
+}
+
+async function marcarTodosLidosAvisos(){
+  avisos = avisos.map(a=>({...a,lido:true}));
+  renderBadgeAvisos();
+  fecharModal('modal-avisos-popup');
+  const central = document.getElementById('view-avisos');
+  if(central?.style.display!=='none') renderCentralAvisos();
+  try{ await chamarAPI({action:'marcarTodosLidos',destinatario:usuarioAtual.nome}); }catch(e){}
+}
+
+function mostrarPopupAvisos(){
+  const naoLidos = avisos.filter(a=>!a.lido);
+  if(!naoLidos.length) return;
+  const titulo = document.getElementById('avisos-popup-titulo');
+  if(titulo) titulo.textContent=`🔔 Você tem ${naoLidos.length} aviso(s) não lido(s)`;
+  const lista = document.getElementById('avisos-popup-lista');
+  if(lista){
+    lista.innerHTML = naoLidos.slice(0,5).map(a=>avisoCardHTML(a)).join('');
+    if(naoLidos.length>5) lista.innerHTML+=`<div style="text-align:center;padding:10px"><button onclick="verCentralAvisos();fecharModal('modal-avisos-popup')" class="btn btn-ghost" style="font-size:12px">Ver todos os ${naoLidos.length} avisos →</button></div>`;
+  }
+  abrirModal('modal-avisos-popup');
+}
+
+function verCentralAvisos(){
+  document.getElementById('avisos-dropdown')?.classList.remove('open');
+  setMenuAtivo('avisos');
+  ['lista','detalhe','calendario'].forEach(id=>{
+    const el=document.getElementById('view-'+id);
+    if(el) el.style.display='none';
+  });
+  const v=document.getElementById('view-avisos');
+  if(v){ v.style.display=''; renderCentralAvisos(); }
+}
+
+let abaAvisos='nao-lidos';
+function setAbaAvisos(aba){
+  abaAvisos=aba;
+  ['nao-lidos','historico'].forEach(id=>{
+    const btn=document.getElementById('aba-avisos-'+id);
+    if(btn) btn.classList.toggle('active',id===aba);
+  });
+  const lista=document.getElementById('central-avisos-lista');
+  if(lista) lista.innerHTML=renderListaAvisos();
+}
+
+function renderListaAvisos(){
+  const fil = abaAvisos==='nao-lidos' ? avisos.filter(a=>!a.lido) : avisos.filter(a=>a.lido);
+  if(!fil.length) return `<p class="empty" style="padding:40px 0;text-align:center">Nenhum aviso ${abaAvisos==='nao-lidos'?'não lido':'no histórico'}.</p>`;
+  return fil.map(a=>avisoCardHTML(a)).join('');
+}
+
+function renderCentralAvisos(){
+  const v=document.getElementById('view-avisos');
+  if(!v) return;
+  const naoLidos=avisos.filter(a=>!a.lido).length;
+  v.innerHTML=`<div style="max-width:700px;margin:0 auto;padding:32px 24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+      <h2 style="font-family:'Playfair Display',serif;font-size:24px">🔔 Central de Avisos</h2>
+      <div style="display:flex;gap:8px">
+        ${isAdmin()?`<button class="btn btn-amber" onclick="abrirModalNovoAviso()">+ Novo Aviso</button>`:''}
+        ${naoLidos>0?`<button class="btn btn-ghost" onclick="marcarTodosLidosAvisos()">✓ Marcar todos como lido</button>`:''}
+      </div>
+    </div>
+    <div class="abas" style="margin-bottom:20px">
+      <button class="aba ${abaAvisos==='nao-lidos'?'active':''}" id="aba-avisos-nao-lidos" onclick="setAbaAvisos('nao-lidos')">Não lidos${naoLidos>0?` <span style="background:var(--red);color:white;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px">${naoLidos}</span>`:''}</button>
+      <button class="aba ${abaAvisos==='historico'?'active':''}" id="aba-avisos-historico" onclick="setAbaAvisos('historico')">Histórico</button>
+    </div>
+    <div id="central-avisos-lista">${renderListaAvisos()}</div>
+  </div>`;
+}
+
+function abrirModalNovoAviso(){
+  const tecnicos=[...new Set(obras.map(o=>o.responsavel).filter(Boolean))].sort();
+  const fa=document.getElementById('f-aviso-dest');
+  if(fa) fa.innerHTML=tecnicos.map(t=>`<option value="${t}">${t}</option>`).join('');
+  const fm=document.getElementById('f-aviso-msg');
+  if(fm) fm.value='';
+  const fo=document.getElementById('f-aviso-obra');
+  if(fo) fo.innerHTML='<option value="">Nenhuma</option>'+obras.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('');
+  abrirModal('modal-novo-aviso');
+}
+
+async function enviarAvisoAdm(){
+  const dest  = document.getElementById('f-aviso-dest')?.value;
+  const msg   = document.getElementById('f-aviso-msg')?.value.trim();
+  const obraId= document.getElementById('f-aviso-obra')?.value;
+  if(!dest||!msg){showToast('⚠️ Preencha destinatário e mensagem.',true);return;}
+  const obra  = obras.find(o=>String(o.id)===String(obraId));
+  showLoading('Enviando...');
+  try{
+    await chamarAPI({action:'criarAviso',destinatario:dest,tipo:'mensagem_adm',mensagem:msg,obraId:obraId||'',obraNome:obra?.nome||'',remetente:usuarioAtual.nome});
+    showToast('✅ Aviso enviado!');
+    fecharModal('modal-novo-aviso');
+  }catch(e){ showToast('⚠️ Erro ao enviar.',true); }
+  finally{ hideLoading(); }
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 // Expõe as funções chamadas por atributos onclick/onchange no HTML.
 // Necessário porque <script type="module"> tem escopo próprio.
 Object.assign(window, {
   toggleMenu, navegarPara, mostrarView, setMenuAtivo, navegarVisaoGeral,
+  toggleDropdownAvisos, abrirAviso, marcarLidoAviso, marcarTodosLidosAvisos,
+  verCentralAvisos, setAbaAvisos, abrirModalNovoAviso, enviarAvisoAdm,
   fazerLogin, logout,
   irLista, irDetalhe,
   renderLista, limparFiltros,
@@ -1814,6 +2035,43 @@ Object.assign(window, {
 
 carregar();
 </script>
+
+<!-- MODAL AVISOS POPUP (auto-show on login) -->
+<div class="modal-overlay" id="modal-avisos-popup">
+  <div class="modal-box" style="max-width:480px">
+    <h3 id="avisos-popup-titulo" style="font-size:18px;margin-bottom:16px">🔔 Avisos</h3>
+    <div id="avisos-popup-lista" style="max-height:320px;overflow-y:auto;margin:-8px 0"></div>
+    <div style="display:flex;gap:8px;margin-top:20px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-avisos-popup')">Fechar</button>
+      <button class="btn btn-amber" onclick="marcarTodosLidosAvisos()">✓ Marcar todos como lido</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVO AVISO (ADM) -->
+<div class="modal-overlay" id="modal-novo-aviso">
+  <div class="modal-box" style="max-width:440px">
+    <h3 style="font-size:18px;margin-bottom:20px">✉️ Novo Aviso</h3>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label class="field-label">Destinatário</label>
+        <select class="input" id="f-aviso-dest"></select>
+      </div>
+      <div>
+        <label class="field-label">Mensagem</label>
+        <textarea class="input" id="f-aviso-msg" rows="3" placeholder="Escreva a mensagem..."></textarea>
+      </div>
+      <div>
+        <label class="field-label">Vincular a uma obra (opcional)</label>
+        <select class="input" id="f-aviso-obra"></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:20px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-novo-aviso')">Cancelar</button>
+      <button class="btn btn-amber" onclick="enviarAvisoAdm()">Enviar</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL RELATÓRIO -->
 <div class="modal-overlay" id="modal-relatorio" style="z-index:600">
