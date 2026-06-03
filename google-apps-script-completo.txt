@@ -170,12 +170,7 @@ function safeJson(val) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function getAvisosSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet
-    ? SpreadsheetApp.getActiveSpreadsheet()
-    : DriveApp.getFilesByName("DiarioDeObra").hasNext()
-      ? SpreadsheetApp.open(DriveApp.getFilesByName("DiarioDeObra").next())
-      : null;
-  if (!ss) throw new Error("Planilha não encontrada");
+  const ss = getSpreadsheet();
   let sheet = ss.getSheetByName('Avisos');
   if (!sheet) {
     sheet = ss.insertSheet('Avisos');
@@ -210,7 +205,7 @@ function loadAvisos(destinatario) {
   for (let i = 1; i < data.length; i++) {
     const row     = data[i];
     const rowDest = String(row[1] || '').trim();
-    if (dest === '' || rowDest === dest) {
+    if (dest === '' || rowDest.toLowerCase() === dest.toLowerCase()) {
       avisos.push(rowToAviso(row));
     }
   }
@@ -246,7 +241,7 @@ function marcarTodosLidos(destinatario) {
   for (let i = 1; i < data.length; i++) {
     const rowDest = String(data[i][1] || '').trim();
     const jaLido  = data[i][7] === true || String(data[i][7]).toUpperCase() === 'TRUE';
-    if (rowDest === dest && !jaLido) {
+    if (rowDest.toLowerCase() === dest.toLowerCase() && !jaLido) {
       sheet.getRange(i + 1, 8).setValue(true);
     }
   }
