@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diário de Obra</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F0E8;--paper:#FFFEF9;--ink:#1C1917;--muted:#78716C;--border:#E8DFC8;--border2:#D4C9B0;--amber:#D97706;--blue:#3B82F6;--green:#10B981;--red:#EF4444;--gold:#92400E;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+h1,h2,h3,h4{font-family:'Playfair Display',serif;}
+
+/* LOGIN */
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--ink);}
+.login-box{background:var(--paper);border-radius:16px;padding:48px 40px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,0.4);}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo .icon{font-size:48px;display:block;margin-bottom:12px;}
+.login-logo h1{font-size:26px;color:var(--ink);}
+.login-logo p{color:var(--muted);font-size:14px;margin-top:4px;}
+.login-error{background:#FEE2E2;color:#EF4444;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;display:none;}
+
+/* HEADER */
+header{background:var(--ink);color:var(--bg);padding:0 28px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px;}
+.logo{display:flex;align-items:center;gap:12px;font-family:'Playfair Display',serif;font-size:22px;font-weight:900;}
+.user-info{display:flex;align-items:center;gap:12px;font-size:13px;color:#D4C9B0;}
+.user-badge{background:rgba(255,255,255,0.1);padding:4px 12px;border-radius:20px;font-weight:600;}
+.btn-logout{background:transparent;border:1px solid rgba(255,255,255,0.2);color:#D4C9B0;cursor:pointer;padding:6px 14px;border-radius:6px;font-size:12px;font-family:'Source Sans 3',sans-serif;transition:all .15s;}
+.btn-logout:hover{background:rgba(255,255,255,0.1);}
+
+/* MAIN */
+main{max-width:1200px;margin:0 auto;padding:32px 24px;}
+
+/* FILTROS */
+.filtros{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;align-items:flex-end;}
+.filtro-group{display:flex;flex-direction:column;gap:5px;}
+.filtro-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.filtro-select{padding:8px 28px 8px 12px;border:1.5px solid var(--border2);border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13px;background:var(--paper);color:var(--ink);outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2378716C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;min-width:160px;}
+.filtro-select:focus{border-color:var(--gold);}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:15px;}
+.search-input{width:100%;padding:8px 12px 8px 36px;border:1.5px solid var(--border2);border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13px;background:var(--paper);color:var(--ink);outline:none;}
+.search-input:focus{border-color:var(--gold);}
+.btn-limpar{padding:8px 16px;border:1.5px solid var(--border2);border-radius:8px;background:transparent;color:var(--muted);font-family:'Source Sans 3',sans-serif;font-size:13px;cursor:pointer;}
+.btn-limpar:hover{background:var(--border);}
+
+/* BOTÕES */
+.btn{cursor:pointer;border:none;font-family:'Source Sans 3',sans-serif;font-weight:700;font-size:13px;border-radius:8px;padding:9px 18px;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn:hover{opacity:.88;transform:translateY(-1px);}
+.btn-dark{background:var(--ink);color:var(--bg);}
+.btn-amber{background:var(--amber);color:#fff;}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border2);}
+.btn-ghost:hover{background:var(--border);}
+
+/* INPUTS */
+.input{width:100%;padding:10px 14px;border:1.5px solid var(--border2);border-radius:7px;font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--paper);color:var(--ink);outline:none;transition:border .15s;}
+.input:focus{border-color:var(--gold);}
+textarea.input{resize:vertical;min-height:80px;}
+select.input{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2378716C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+.field-label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;}
+
+/* CARDS */
+.card{background:var(--paper);border-radius:12px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.obra-card{cursor:pointer;padding:22px;position:relative;overflow:hidden;transition:box-shadow .2s,transform .15s;}
+.obra-card:hover{box-shadow:0 10px 30px rgba(0,0,0,.12);transform:translateY(-2px);}
+.stripe{position:absolute;top:0;left:0;right:0;height:4px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.progress-bar{height:8px;background:var(--border);border-radius:5px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--amber));border-radius:5px;transition:width .4s;}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;}
+
+/* CONTAGEM */
+.resumo{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+.resumo-item{background:var(--paper);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;display:flex;align-items:center;gap:8px;}
+.resumo-num{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;}
+
+/* ABAS */
+.abas{display:flex;border-bottom:1.5px solid var(--border);margin-bottom:24px;gap:4px;}
+.aba{background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;padding:10px 18px;font-family:'Source Sans 3',sans-serif;font-size:14px;font-weight:600;color:var(--muted);transition:all .15s;margin-bottom:-1.5px;}
+.aba.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* META BOXES */
+.meta-boxes{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;}
+.meta-box{background:var(--bg);padding:10px 16px;border-radius:9px;font-size:13px;min-width:100px;}
+.meta-label{color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+.meta-value{font-weight:700;font-size:15px;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);}
+.modal-overlay.open{display:flex;animation:fadeIn .2s;}
+.modal-box{background:var(--paper);border-radius:14px;padding:32px;width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,.25);animation:slideUp .2s;max-height:90vh;overflow-y:auto;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* LOADING / TOAST */
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(245,240,232,.85);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px;backdrop-filter:blur(4px);}
+.loading-overlay.show{display:flex;}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:28px;right:28px;background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:10px;font-size:14px;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,.3);}
+.toast.show{display:block;animation:slideUp .2s;}
+.toast.erro{background:var(--red);}
+
+/* GERAL GRID */
+.geral-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+
+/* MISC */
+.remove-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:2px 6px;border-radius:4px;}
+.remove-btn:hover{color:var(--red);}
+.empty{color:var(--muted);font-size:14px;padding:20px 0;}
+input[type=range]{width:100%;accent-color:var(--amber);margin-top:8px;cursor:pointer;}
+.pend-item{display:flex;align-items:center;gap:14px;padding:14px 18px;margin-bottom:10px;}
+.pend-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);cursor:pointer;flex-shrink:0;}
+.aviso-item{padding:16px 18px;margin-bottom:12px;border-left:4px solid var(--blue);}
+
+@media(max-width:640px){.geral-grid,.grid{grid-template-columns:1fr;}.filtros{flex-direction:column;}}
+
+/* RELATÓRIO PDF */
+.rel-section{margin-bottom:28px;}
+.rel-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);border-bottom:2px solid var(--border);padding-bottom:8px;margin-bottom:16px;}
+.rel-obra{padding:14px 16px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;background:var(--paper);}
+.rel-obra-nome{font-weight:700;font-size:15px;margin-bottom:4px;}
+.rel-obra-info{font-size:13px;color:var(--muted);margin-bottom:6px;}
+.rel-obra-status{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;margin-bottom:6px;}
+.rel-pend{font-size:13px;color:var(--red);margin-top:4px;}
+
+@media print {
+  body * { visibility: hidden; }
+  #relatorio-print, #relatorio-print * { visibility: visible; }
+  #relatorio-print { position: fixed; top: 0; left: 0; width: 100%; padding: 20px; background: white; }
+  .no-print { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- TELA DE LOGIN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="icon">🏗️</span>
+      <h1>Diário de Obra</h1>
+      <p>Faça login para continuar</p>
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label class="field-label">Usuário</label>
+        <input class="input" id="login-user" placeholder="Seu nome" onkeydown="if(event.key==='Enter')fazerLogin()">
+      </div>
+      <div>
+        <label class="field-label">Senha</label>
+        <input class="input" id="login-pass" type="password" placeholder="Sua senha" onkeydown="if(event.key==='Enter')fazerLogin()">
+      </div>
+      <button class="btn btn-dark" style="width:100%;justify-content:center;padding:12px;font-size:15px;margin-top:8px" onclick="fazerLogin()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MENU LATERAL -->
+<div id="menu-lateral" style="position:fixed;top:0;left:-280px;width:260px;height:100%;background:#1C1917;z-index:1000;transition:left .3s ease;box-shadow:4px 0 20px rgba(0,0,0,0.3);display:flex;flex-direction:column">
+  <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.1)">
+    <div style="font-size:18px;font-weight:700;color:white">🏗️ Diário de Obra</div>
+    <button onclick="toggleMenu()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:rgba(255,255,255,0.6);font-size:20px;cursor:pointer">✕</button>
+  </div>
+  <nav style="padding:16px 0;flex:1">
+    <button onclick="navegarPara('lista')" class="menu-item" id="menu-obras">📋 Obras</button>
+    <button onclick="navegarPara('calendario')" class="menu-item" id="menu-calendario">📅 Calendário</button>
+    <div style="height:1px;background:rgba(255,255,255,0.1);margin:12px 16px"></div>
+    <button onclick="navegarPara('relatorio')" class="menu-item" id="menu-relatorio">📊 Relatório</button>
+  </nav>
+  <div style="padding:16px 24px;border-top:1px solid rgba(255,255,255,0.1)">
+    <div id="menu-user" style="font-size:13px;color:rgba(255,255,255,0.6)"></div>
+  </div>
+</div>
+<div id="menu-overlay" onclick="toggleMenu()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:999"></div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <header>
+    <div class="header-inner">
+      <button onclick="toggleMenu()" id="btn-menu" style="background:none;border:none;color:white;font-size:22px;cursor:pointer;padding:4px 8px;margin-right:8px">☰</button>
+      <div class="logo">🏗️ Diário de Obra</div>
+      <div class="user-info">
+        <span id="user-nome-header"></span>
+        <span class="user-badge" id="user-perfil-header"></span>
+        <button class="btn-logout" onclick="logout()">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- CALENDÁRIO -->
+    <div id="view-calendario" style="display:none;padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-ghost" onclick="navMes(-1)">◀</button>
+          <span id="cal-titulo" style="font-size:18px;font-weight:700;min-width:180px;text-align:center"></span>
+          <button class="btn btn-ghost" onclick="navMes(1)">▶</button>
+          <button class="btn btn-ghost" onclick="irHoje()">Hoje</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-dark" id="btn-cal-mensal" onclick="setVistaCalendario('mensal')" style="font-size:12px">📅 Mensal</button>
+          <button class="btn btn-ghost" id="btn-cal-lista" onclick="setVistaCalendario('lista')" style="font-size:12px">📋 Lista</button>
+          <button class="btn btn-amber" onclick="abrirModalEvento(null)" style="font-size:12px">+ Novo Evento</button>
+        </div>
+      </div>
+      <div id="cal-conteudo"></div>
+    </div>
+
+    <!-- LISTA -->
+    <div id="view-lista">
+      <!-- Filtros -->
+      <div class="filtros">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="busca" placeholder="Buscar obra..." oninput="renderLista()">
+        </div>
+        <div class="filtro-group">
+          <span class="filtro-label">Status</span>
+          <select class="filtro-select" id="filtro-status" onchange="renderLista()">
+            <option value="">Todos os status</option>
+            <option value="planejamento">Planejamento</option>
+            <option value="andamento">Em Andamento</option>
+            <option value="concluida">Finalizada</option>
+            <option value="pausada">Pausada</option>
+          </select>
+        </div>
+        <div class="filtro-group">
+          <span class="filtro-label">Responsável</span>
+          <select class="filtro-select" id="filtro-resp" onchange="renderLista()">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="filtro-group">
+          <span class="filtro-label">Fiscal</span>
+          <select class="filtro-select" id="filtro-fiscal" onchange="renderLista()">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="filtro-group">
+          <span class="filtro-label">Pendência</span>
+          <select class="filtro-select" id="filtro-pend" onchange="renderLista()">
+            <option value="">Todas</option>
+            <option value="assinar_termo">Aguardando assinatura do Termo de Recebimento</option>
+            <option value="aguard_avcb">Aguardando emissão do AVCB</option>
+            <option value="aguard_nf">Aguardando envio de Nota Fiscal pelo fornecedor</option>
+            <option value="aguard_relatorio">Aguardando envio de relatório pelo fornecedor</option>
+            <option value="aguard_pagamento">Aguardando pagamento da medição</option>
+            <option value="medicao_validar">Aguardando validação da medição pelo fiscal</option>
+            <option value="validar_termo">Aguardando validação do Termo de Recebimento</option>
+            <option value="analisar_aditivo">Analisar solicitação de aditivo</option>
+            <option value="elaborar_termo_rec">Elaborar Termo de Recebimento Definitivo</option>
+            <option value="medicao_elaborar">Medição em elaboração</option>
+            <option value="reuniao_abertura">Realizar reunião de abertura de obra</option>
+            <option value="outro">Outros</option>
+          </select>
+        </div>
+        <button class="btn-limpar" onclick="limparFiltros()">✕ Limpar</button>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap">
+          <input type="checkbox" id="mostrar-finalizadas" onchange="renderLista()" style="accent-color:var(--gold);width:15px;height:15px">
+          Mostrar finalizadas
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#EF4444;cursor:pointer;white-space:nowrap">
+          <input type="checkbox" id="filtro-sem-coment" onchange="renderLista()" style="accent-color:#EF4444;width:15px;height:15px">
+          Sem comentário
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#F59E0B;cursor:pointer;white-space:nowrap">
+          <input type="checkbox" id="filtro-sem-retorno" onchange="renderLista()" style="accent-color:#F59E0B;width:15px;height:15px">
+          Sem retorno semanal
+        </label>
+        <div style="display:flex;gap:8px;margin-left:auto">
+          <button class="btn btn-ghost" onclick="gerarRelatorio()" style="border-color:var(--gold);color:var(--gold)">📊 Relatório</button>
+    <button class="btn btn-amber" id="btn-nova-obra" onclick="abrirModal('modal-obra')" style="display:none">+ Nova Obra</button>
+        </div>
+      </div>
+
+      <!-- Resumo -->
+      <div class="resumo" id="resumo"></div>
+
+      <!-- Grid -->
+      <div class="grid" id="obras-grid"></div>
+    </div>
+
+    <!-- DETALHE -->
+    <div id="view-detalhe" style="display:none">
+      <div class="card" style="padding:28px;margin-bottom:24px" id="det-header"></div>
+      <div class="abas" id="det-abas"></div>
+      <div id="det-content"></div>
+    </div>
+  </main>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <p style="font-family:'Playfair Display',serif;color:var(--gold)" id="loading-txt">Carregando...</p>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- MODAL OBRA -->
+<div class="modal-overlay" id="modal-obra">
+  <div class="modal-box">
+    <h3 style="font-size:22px;margin-bottom:22px" id="modal-obra-titulo">Nova Obra</h3>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label class="field-label">Nome / Agência *</label><input class="input" id="f-nome" placeholder="Ex: Agência Água Branca (PI)"></div>
+      <div><label class="field-label">Objeto</label><textarea class="input" id="f-objeto" placeholder="Descrição do serviço"></textarea></div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label class="field-label">Fiscal</label><input class="input" id="f-fiscal" placeholder="Nome do fiscal"></div>
+        <div style="flex:1"><label class="field-label">Responsável</label><input class="input" id="f-resp" placeholder="Ex: CARINE"></div>
+      </div>
+      <div><label class="field-label">Fornecedor</label><input class="input" id="f-forn" placeholder="Empresa responsável"></div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label class="field-label">Instrumento</label><input class="input" id="f-instr" placeholder="Ex: AF 2026/168"></div>
+        <div style="flex:1"><label class="field-label">ID no GED</label><input class="input" id="f-ged" placeholder="Ex: 669872859"></div>
+      </div>
+      <div><label class="field-label">Valor</label><input class="input" id="f-valor" placeholder="Ex: R$ 158.900,00"></div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label class="field-label">Início</label><input class="input" id="f-inicio" type="date"></div>
+        <div style="flex:1"><label class="field-label">Prazo (dias)</label><input class="input" id="f-prazo-dias" type="number" placeholder="Ex: 90"></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label class="field-label">Aditivo de Prazo (dias)</label><input class="input" id="f-aditivo-dias" type="number" placeholder="Ex: 30"></div>
+        <div style="flex:1"><label class="field-label">Aditivo de Valor</label><input class="input" id="f-aditivo-valor" placeholder="Ex: R$ 10.000,00"></div>
+      </div>
+      <div><label class="field-label">Link da Pasta (documentos)</label><input class="input" id="f-link" placeholder="https://drive.google.com/..."></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div style="display:flex;align-items:center;gap:8px;flex:1">
+          <input type="checkbox" id="f-vistoria" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer">
+          <label class="field-label" style="margin:0;cursor:pointer" for="f-vistoria">Vistoria do fiscal realizada</label>
+        </div>
+        <div style="flex:1"><label class="field-label">Data da Vistoria</label><input class="input" id="f-vistoria-data" type="date"></div>
+      </div>
+      <div><label class="field-label">Status</label>
+        <select class="input" id="f-status">
+          <option value="planejamento">Planejamento / P/ Iniciar</option>
+          <option value="andamento">Em Andamento</option>
+          <option value="concluida">Finalizada</option>
+          <option value="pausada">Pausada</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-obra')">Cancelar</button>
+      <button class="btn btn-dark" onclick="salvarObra()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AVISO -->
+<div class="modal-overlay" id="modal-aviso">
+  <div class="modal-box">
+    <h3 style="font-size:22px;margin-bottom:22px">🔔 Novo Aviso</h3>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div><label class="field-label">Descrição</label><textarea class="input" id="f-aviso"></textarea></div>
+      <div><label class="field-label">Tipo</label>
+        <select class="input" id="f-aviso-tipo">
+          <option value="info">ℹ️ Informação</option>
+          <option value="alerta">⚠️ Alerta</option>
+          <option value="urgente">🚨 Urgente</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-aviso')">Cancelar</button>
+      <button class="btn btn-blue" onclick="addAviso()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PENDENCIA -->
+<div class="modal-overlay" id="modal-pend">
+  <div class="modal-box">
+    <h3 style="font-size:22px;margin-bottom:22px">⚡ Nova Pendência</h3>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div><label class="field-label">Tipo *</label>
+        <select class="input" id="f-pend-tipo">
+          <option value="">Selecione o tipo...</option>
+          <option value="assinar_termo">Aguardando assinatura do Termo de Recebimento</option>
+          <option value="aguard_avcb">Aguardando emissão do AVCB</option>
+          <option value="aguard_nf">Aguardando envio de Nota Fiscal pelo fornecedor</option>
+          <option value="aguard_relatorio">Aguardando envio de relatório pelo fornecedor</option>
+          <option value="aguard_pagamento">Aguardando pagamento da medição</option>
+          <option value="medicao_validar">Aguardando validação da medição pelo fiscal</option>
+          <option value="validar_termo">Aguardando validação do Termo de Recebimento</option>
+          <option value="analisar_aditivo">Analisar solicitação de aditivo</option>
+          <option value="elaborar_termo_rec">Elaborar Termo de Recebimento Definitivo</option>
+          <option value="medicao_elaborar">Medição em elaboração</option>
+          <option value="reuniao_abertura">Realizar reunião de abertura de obra</option>
+          <option value="outro">Outros</option>
+        </select>
+      </div>
+      <div><label class="field-label">Descrição adicional (opcional)</label><textarea class="input" id="f-pend" placeholder="Detalhes adicionais..." style="min-height:70px"></textarea></div>
+      <div><label class="field-label">Prioridade</label>
+        <select class="input" id="f-pend-prio">
+          <option value="alta">🔴 Alta</option>
+          <option value="media">🟡 Média</option>
+          <option value="baixa">🟢 Baixa</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-pend')">Cancelar</button>
+      <button class="btn btn-amber" onclick="addPendencia()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EVENTO -->
+<div class="modal-overlay" id="modal-evento">
+  <div class="modal-box" style="max-width:560px">
+    <h3 style="font-size:20px;margin-bottom:16px">📅 Evento de Execução</h3>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label class="field-label">Obra *</label>
+        <select class="input" id="f-ev-obra">
+          <option value="">Selecione a obra...</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Observação (opcional)</label>
+        <textarea class="input" id="f-ev-obs" placeholder="Detalhes do serviço..." style="min-height:70px"></textarea>
+      </div>
+      <div>
+        <label class="field-label">Períodos de execução *</label>
+        <div id="f-ev-periodos"></div>
+        <button class="btn btn-ghost" onclick="addPeriodo()" style="font-size:12px;margin-top:8px">+ Adicionar período</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-evento')">Cancelar</button>
+      <button class="btn btn-amber" onclick="salvarEvento()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE EVENTO -->
+<div class="modal-overlay" id="modal-detalhe-evento">
+  <div class="modal-box" style="max-width:480px">
+    <h3 style="font-size:18px;margin-bottom:16px" id="det-ev-titulo"></h3>
+    <div id="det-ev-conteudo"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-detalhe-evento')">Fechar</button>
+      <button class="btn btn-ghost" id="btn-det-editar" style="display:none" onclick="editarEventoAtual()">✏️ Editar</button>
+      <button class="btn" id="btn-det-excluir" style="display:none;background:#EF4444;color:white;border:none" onclick="excluirEventoAtual()">🗑 Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FINALIZAÇÃO -->
+<div class="modal-overlay" id="modal-finalizar">
+  <div class="modal-box">
+    <h3 style="font-size:22px;margin-bottom:8px">✅ Finalizar Obra</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Informe o número do Termo de Recebimento no GED para concluir a finalização.</p>
+    <div>
+      <label class="field-label">ID do Termo de Recebimento no GED *</label>
+      <input class="input" id="f-termo-ged" placeholder="Ex: 731718591" type="text">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-finalizar')">Cancelar</button>
+      <button class="btn" style="background:#10B981;color:white;border:none" onclick="confirmarFinalizacao()">✅ Confirmar Finalização</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COMENTÁRIO QUINZENAL -->
+<div class="modal-overlay" id="modal-coment">
+  <div class="modal-box">
+    <h3 style="font-size:22px;margin-bottom:8px">💬 Comentário Quinzenal</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px" id="coment-quinzena-label"></p>
+    <textarea class="input" id="f-coment" placeholder="Descreva o andamento da obra nesta quinzena..." style="min-height:120px"></textarea>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-coment')">Cancelar</button>
+      <button class="btn btn-dark" onclick="salvarComentario()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ATUALIZACAO -->
+<div class="modal-overlay" id="modal-atu">
+  <div class="modal-box">
+    <h3 style="font-size:22px;margin-bottom:22px">📝 Registrar Atualização</h3>
+    <textarea class="input" id="f-atu" placeholder="O que aconteceu na obra?"></textarea>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-atu')">Cancelar</button>
+      <button class="btn btn-green" onclick="addAtualizacao()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── NAVEGAÇÃO ──────────────────────────────────────────────────────────────
+function toggleMenu(){
+  const menu = document.getElementById('menu-lateral');
+  const overlay = document.getElementById('menu-overlay');
+  if(!menu||!overlay) return;
+  const aberto = menu.style.left === '0px';
+  menu.style.left = aberto ? '-280px' : '0px';
+  overlay.style.display = aberto ? 'none' : 'block';
+}
+
+function navegarPara(v){
+  toggleMenu();
+  setTimeout(()=>mostrarView(v), 300);
+}
+
+function mostrarView(v){
+  ["lista","detalhe","calendario"].forEach(id=>{
+    const el = document.getElementById("view-"+id);
+    if(el) el.style.display="none";
+  });
+  ["obras","calendario","relatorio"].forEach(id=>{
+    const btn = document.getElementById("menu-"+id);
+    if(btn) btn.classList.remove("active");
+  });
+  const mapa = {lista:"obras", calendario:"calendario"};
+  const menuBtn = document.getElementById("menu-"+(mapa[v]||v));
+  if(menuBtn) menuBtn.classList.add("active");
+  if(v==="relatorio"){ imprimirRelatorio(); return; }
+  const el = document.getElementById("view-"+v);
+  if(el) el.style.display="";
+  if(v==="lista") renderLista();
+  if(v==="calendario") setTimeout(renderCalendario, 50);
+}
+
+const API_URL = "https://script.google.com/macros/s/AKfycbw5LwBg51EeU8vA47fp4yUikxx6WP8r_fKBuIgWGu-Rv__i2vnIkOxj6aobbHIdL6k0/exec";
+const APP_KEY = "3abeb74aceffdafb4ff157b193149c58cabc2a19173f5d7b4dfc94cec45ea39a";
+
+// Hash SHA-256 para senhas
+async function sha256(msg){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+const STATUS_CFG = {
+  planejamento:{label:"Planejamento",color:"#F59E0B",bg:"#FEF3C7"},
+  andamento:   {label:"Em Andamento",color:"#3B82F6",bg:"#DBEAFE"},
+  concluida:   {label:"Finalizada",  color:"#10B981",bg:"#D1FAE5"},
+  pausada:     {label:"Pausada",     color:"#EF4444",bg:"#FEE2E2"},
+};
+const PRIO_CFG = {
+  alta: {label:"Alta", color:"#EF4444"},
+  media:{label:"Média",color:"#F59E0B"},
+  baixa:{label:"Baixa",color:"#10B981"},
+};
+const AVISO_CFG = {
+  info:   {icon:"ℹ️",color:"#3B82F6"},
+  alerta: {icon:"⚠️",color:"#F59E0B"},
+  urgente:{icon:"🚨",color:"#EF4444"},
+};
+
+let obras = [];
+let obraAtiva = null;
+let abaAtiva = "geral";
+let debTimer = null;
+let editandoId = null;
+let usuarioAtual = null; // {nome, perfil}
+
+// ── UTILS ──────────────────────────────────────────────────────────────
+function uid(){ return Date.now()+Math.floor(Math.random()*9999); }
+function hoje(){ return new Date().toISOString().slice(0,10); }
+function toInputDate(s){
+  if(!s) return "";
+  let str=String(s).trim();
+  if(str.includes('T')) str=str.split('T')[0];
+  if(str.match(/^\d{4}-\d{2}-\d{2}$/)) return str;
+  return "";
+}
+function fmtDate(s){
+  if(!s) return "—";
+  let str=String(s).trim();
+  if(str.includes('T')) str=str.split('T')[0];
+  if(str.match(/^\d{4}-\d{2}-\d{2}$/)){
+    const[y,m,d]=str.split('-'); return d+'/'+m+'/'+y;
+  }
+  return str;
+}
+function calcPrazoFinal(inicio, dias, aditivoDias){
+  if(!inicio||!dias) return '';
+  try{
+    const total = parseInt(dias) + (parseInt(aditivoDias)||0);
+    const d=new Date(inicio);
+    // Primeiro dia conta, então somamos (total - 1)
+    d.setDate(d.getDate()+(total-1));
+    return d.toISOString().slice(0,10);
+  }catch(e){ return ''; }
+}
+function diasR(prazo, aditivoDias){
+  if(!prazo) return null;
+  let str=String(prazo).trim();
+  if(str.includes('T')) str=str.split('T')[0];
+  if(!str.match(/^\d{4}-\d{2}-\d{2}$/)) return null;
+  // Usar UTC para evitar problema de fuso horário
+  const [py,pm,pd] = str.split('-').map(Number);
+  const prazoDate = Date.UTC(py,pm-1,pd);
+  const adDias = aditivoDias ? parseInt(aditivoDias)||0 : 0;
+  const prazoFinal = prazoDate + adDias*86400000;
+  const hoje = new Date();
+  const hojeUTC = Date.UTC(hoje.getFullYear(),hoje.getMonth(),hoje.getDate());
+  return Math.round((prazoFinal-hojeUTC)/86400000)+1;
+}
+function getObra(){ return obras.find(o=>o.id===obraAtiva); }
+function safeArr(v){ if(Array.isArray(v)) return v; try{return JSON.parse(v)||[];}catch(e){return[];} }
+function isAdmin(){ return usuarioAtual && String(usuarioAtual.perfil).toUpperCase()==='ADM'; }
+function isGestor(){ return usuarioAtual && String(usuarioAtual.perfil).toUpperCase()==='GESTOR'; }
+
+let obraParaFinalizar = null;
+
+function finalizarObra(id){
+  if(!isAdmin()){alert("Apenas ADM pode finalizar obras.");return;}
+  obraParaFinalizar = id;
+  document.getElementById("f-termo-ged").value = "";
+  abrirModal("modal-finalizar");
+}
+
+function confirmarFinalizacao(){
+  const termoGed = document.getElementById("f-termo-ged").value.trim();
+  if(!termoGed){
+    alert("⚠️ Informe o número do Termo de Recebimento no GED para finalizar.");
+    return;
+  }
+  const hoje = new Date().toISOString().slice(0,10);
+  obras = obras.map(o => o.id!==obraParaFinalizar ? o : {
+    ...o,
+    status:'concluida',
+    progresso:100,
+    dataFinalizacao:hoje,
+    statusOriginal:'FINALIZADA',
+    idTermoRecebimento:termoGed
+  });
+  debSalvar(obraParaFinalizar);
+  fecharModal("modal-finalizar");
+  obraParaFinalizar = null;
+  renderHeader();
+  renderAbas();
+  showToast("✅ Obra finalizada! Termo GED: "+termoGed);
+}
+function podeEditar(){ return !isGestor(); }
+
+// ── LOADING / TOAST ────────────────────────────────────────────────────
+function showLoading(txt="Carregando..."){
+  document.getElementById("loading-txt").textContent=txt;
+  document.getElementById("loading").classList.add("show");
+}
+function hideLoading(){ document.getElementById("loading").classList.remove("show"); }
+let toastT;
+function showToast(msg,erro=false){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.className="toast show"+(erro?" erro":"");
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),3000);
+}
+
+// ── API JSONP ──────────────────────────────────────────────────────────
+function chamarAPI(params){
+  return new Promise((resolve,reject)=>{
+    const cb="cb_"+uid();
+    const url=new URL(API_URL);
+    for(const[k,v] of Object.entries(params)){
+      url.searchParams.set(k,typeof v==="object"?JSON.stringify(v):String(v));
+    }
+    url.searchParams.set("appKey",APP_KEY);
+    url.searchParams.set("callback",cb);
+    const script=document.createElement("script");
+    const timer=setTimeout(()=>{cleanup();reject(new Error("Timeout"));},20000);
+    function cleanup(){clearTimeout(timer);delete window[cb];if(script.parentNode)script.parentNode.removeChild(script);}
+    window[cb]=(data)=>{cleanup();resolve(data);};
+    script.onerror=()=>{cleanup();reject(new Error("Erro de rede"));};
+    script.src=url.toString();
+    document.head.appendChild(script);
+  });
+}
+
+// ── LOGIN ──────────────────────────────────────────────────────────────
+async function fazerLogin(){
+  const nome=document.getElementById("login-user").value.trim();
+  const senha=document.getElementById("login-pass").value.trim();
+  if(!nome||!senha){mostrarErroLogin("Preencha usuário e senha.");return;}
+  showLoading("Verificando...");
+  try{
+    const senhaHash = await sha256(senha);
+    const r=await chamarAPI({action:"login",nome,senha:senhaHash});
+    if(r&&r.success){
+      usuarioAtual={nome:r.nome,perfil:r.perfil};
+      document.getElementById("login-screen").style.display="none";
+      document.getElementById("app").style.display="block";
+      document.getElementById("user-nome-header").textContent="Olá, "+r.nome;
+      document.getElementById("user-perfil-header").textContent=r.perfil;
+      await carregar();
+    } else {
+      mostrarErroLogin(r&&r.error?r.error:"Usuário ou senha incorretos.");
+    }
+  }catch(e){
+    mostrarErroLogin("Erro ao conectar. Tente novamente.");
+  }finally{
+    hideLoading();
+  }
+}
+function mostrarErroLogin(msg){
+  const el=document.getElementById("login-error");
+  el.textContent=msg; el.style.display="block";
+}
+function logout(){
+  usuarioAtual=null; obras=[];
+  document.getElementById("app").style.display="none";
+  document.getElementById("login-screen").style.display="flex";
+  document.getElementById("login-user").value="";
+  document.getElementById("login-pass").value="";
+  document.getElementById("login-error").style.display="none";
+}
+
+// ── CARREGAR ───────────────────────────────────────────────────────────
+async function carregar(){
+  showLoading("Carregando obras...");
+  try{
+    const r=await chamarAPI({action:"load"});
+    if(r&&r.obras&&r.obras.length>0){
+      obras=r.obras.map(o=>({
+        id:Number(o.id)||o.id,
+        nome:String(o.nome||""),
+        objeto:String(o.objeto||""),
+        fiscal:String(o.fiscal||""),
+        fornecedor:String(o.fornecedor||""),
+        valor:String(o.valor||""),
+        instrumento:String(o.instrumento||""),
+        idGed:String(o.idGed||""),
+        inicio:toInputDate(o.inicio),
+        prazoDias:String(o.prazoDias||""),
+        prazo:toInputDate(o.prazo),
+        status:String(o.status||"andamento"),
+        statusOriginal:String(o.statusOriginal||""),
+        progresso:Number(o.progresso)||0,
+        versao:Number(o.versao)||0,
+        dataFinalizacao:String(o.dataFinalizacao||''),
+        idTermoRecebimento:String(o.idTermoRecebimento||''),
+        eventos:safeArr(o.eventos),
+        responsavel:String(o.responsavel||""),
+        avisos:safeArr(o.avisos),
+        pendencias:safeArr(o.pendencias),
+        atualizacoes:safeArr(o.atualizacoes),
+        comentariosQuinzenais:safeArr(o.comentariosQuinzenais),
+        aditivoDias:String(o.aditivoDias||''),
+        aditivoValor:String(o.aditivoValor||''),
+        linkPasta:String(o.linkPasta||''),
+        vistoriaRealizada:Boolean(o.vistoriaRealizada)||false,
+        vistoriaData:String(o.vistoriaData||''),
+      }));
+      popularFiltros();
+      const btnNova = document.getElementById('btn-nova-obra');
+      if(btnNova) btnNova.style.display = isGestor() ? 'none' : '';
+      const menuUser = document.getElementById('menu-user');
+      if(menuUser && usuarioAtual) menuUser.textContent = usuarioAtual.nome + ' · ' + usuarioAtual.perfil;
+      showToast("✅ "+obras.length+" obras carregadas!");
+    } else {
+      obras=[];
+    }
+  }catch(e){
+    obras=[];
+    showToast("⚠️ Erro ao carregar: "+e.message,true);
+  }finally{
+    hideLoading();
+    renderLista();
+  }
+}
+
+// ── SALVAR / DELETAR ───────────────────────────────────────────────────
+async function salvarUma(id){
+  const o=obras.find(x=>x.id===id); if(!o) return;
+  try{
+    const r = await chamarAPI({action:"saveOne", obra:o});
+    if(r && r.conflito){
+      // Conflito de versão detectado
+      const recarregar = confirm("⚠️ Atenção!\n\nEssa obra foi alterada por outra pessoa enquanto você editava.\n\nClique OK para recarregar os dados atualizados, ou Cancelar para manter suas alterações.");
+      if(recarregar){
+        await carregar();
+        showToast("🔄 Dados recarregados!");
+      } else {
+        showToast("⚠️ Suas alterações não foram salvas.", true);
+      }
+    } else {
+      // Incrementar versão local após salvar
+      obras = obras.map(x => x.id===id ? {...x, versao:(x.versao||0)+1} : x);
+      showToast("✅ Salvo!");
+    }
+  }
+  catch(e){ showToast("⚠️ Erro ao salvar.",true); }
+}
+function debSalvar(id){ clearTimeout(debTimer); debTimer=setTimeout(()=>salvarUma(id),1000); }
+
+async function apagarObra(id){
+  if(!isAdmin()){showToast("⚠️ Sem permissão para apagar.",true);return;}
+  if(!confirm("Apagar esta obra permanentemente?")) return;
+  showLoading("Apagando...");
+  try{
+    await chamarAPI({action:"deleteObra",id:String(id)});
+    obras=obras.filter(o=>o.id!==id);
+    showToast("✅ Obra apagada!");
+    irLista();
+  }catch(e){
+    showToast("⚠️ Erro ao apagar.",true);
+  }finally{
+    hideLoading();
+  }
+}
+
+// ── FILTROS ────────────────────────────────────────────────────────────
+function popularFiltros(){
+  const resps=[...new Set(obras.map(o=>o.responsavel).filter(Boolean))].sort();
+  const fiscais=[...new Set(obras.map(o=>o.fiscal).filter(Boolean))].sort();
+  const fResp=document.getElementById("filtro-resp");
+  const fFisc=document.getElementById("filtro-fiscal");
+  fResp.innerHTML='<option value="">Todos</option>'+resps.map(r=>`<option value="${r}">${r}</option>`).join('');
+  fFisc.innerHTML='<option value="">Todos</option>'+fiscais.map(f=>`<option value="${f}">${f.split(' ').slice(0,2).join(' ')}</option>`).join('');
+}
+function limparFiltros(){
+  document.getElementById("busca").value="";
+  document.getElementById("filtro-status").value="";
+  document.getElementById("filtro-resp").value="";
+  document.getElementById("filtro-fiscal").value="";
+  document.getElementById("filtro-pend").value="";
+  if(document.getElementById("filtro-sem-retorno")) document.getElementById("filtro-sem-retorno").checked=false;
+  renderLista();
+}
+
+// ── NAVEGAÇÃO ──────────────────────────────────────────────────────────
+function irLista(){
+  obraAtiva=null; abaAtiva="geral";
+  document.getElementById("view-lista").style.display="";
+  document.getElementById("view-detalhe").style.display="none";
+  renderLista();
+}
+function irDetalhe(id){
+  obraAtiva=id; abaAtiva="geral";
+  document.getElementById("view-lista").style.display="none";
+  document.getElementById("view-detalhe").style.display="";
+  renderDetalhe();
+}
+
+// ── LISTA ──────────────────────────────────────────────────────────────
+function renderLista(){
+  const q=document.getElementById("busca").value.toLowerCase();
+  const fStatus=document.getElementById("filtro-status").value;
+  const fResp=document.getElementById("filtro-resp").value;
+  const fFisc=document.getElementById("filtro-fiscal").value;
+
+  const mostrarFin = document.getElementById("mostrar-finalizadas").checked;
+  const filtroSemComent = document.getElementById("filtro-sem-coment").checked;
+  const filtroSemRetorno = document.getElementById("filtro-sem-retorno") ? document.getElementById("filtro-sem-retorno").checked : false;
+  const fPend = document.getElementById("filtro-pend").value;
+  // Ordenar por ID decrescente (mais novas primeiro)
+  const obrasOrdenadas = [...obras].sort((a,b)=>{
+    const idA = typeof a.id === 'number' ? a.id : parseInt(a.id)||0;
+    const idB = typeof b.id === 'number' ? b.id : parseInt(b.id)||0;
+    return idB - idA;
+  });
+  const fil=obrasOrdenadas.filter(o=>{
+    if(!mostrarFin && o.status==='concluida') return false;
+    if(q && !o.nome.toLowerCase().includes(q) && !String(o.instrumento||'').toLowerCase().includes(q)) return false;
+    if(fStatus && o.status!==fStatus) return false;
+    if(fResp && o.responsavel!==fResp) return false;
+    if(fFisc && o.fiscal!==fFisc) return false;
+    if(filtroSemComent && temComentarioQuinzena(o)) return false;
+    if(filtroSemRetorno && temRetornoSemanal(o)) return false;
+    if(fPend){
+      const pends = safeArr(o.pendencias).filter(p=>!p.concluida);
+      if(!pends.some(p=>p.tipo===fPend || (!p.tipo && fPend==='outro'))) return false;
+    }
+    return true;
+  });
+
+  // Resumo
+  const total=fil.length;
+  const porStatus={planejamento:0,andamento:0,concluida:0,pausada:0};
+  fil.forEach(o=>{ if(porStatus[o.status]!==undefined) porStatus[o.status]++; });
+  document.getElementById("resumo").innerHTML=`
+    <div class="resumo-item"><span class="resumo-num">${total}</span> obra${total!==1?"s":""} encontrada${total!==1?"s":""}</div>
+    ${Object.entries(porStatus).map(([k,v])=>v>0?`<div class="resumo-item"><span style="color:${STATUS_CFG[k].color};font-size:16px">●</span><span class="resumo-num" style="font-size:16px">${v}</span> ${STATUS_CFG[k].label}</div>`:'').join('')}
+  `;
+
+  const grid=document.getElementById("obras-grid");
+  if(!fil.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1;text-align:center;padding:60px">${obras.length?"Nenhuma obra encontrada com esses filtros.":"Nenhuma obra cadastrada."}</div>`;
+    return;
+  }
+
+  grid.innerHTML=fil.map(o=>{
+    const cfg=STATUS_CFG[o.status]||STATUS_CFG.andamento;
+    const dr=diasR(o.prazo, o.aditivoDias);
+    const pa=safeArr(o.pendencias).filter(p=>!p.concluida).length;
+    const av=safeArr(o.avisos).length;
+    const chips=[
+      dr!==null?`<span class="chip" style="background:${dr<0?"#FEE2E2":dr<30?"#FEF3C7":"#F5F0E8"};color:${dr<0?"#EF4444":dr<30?"#F59E0B":"#78716C"}">⏰ ${dr}d</span>`:"",
+      pa>0?`<span class="chip" style="background:#FEF3C7;color:#92400E">⚡ ${pa} pend.</span>`:"",
+      av>0?`<span class="chip" style="background:#DBEAFE;color:#3B82F6">🔔 ${av} aviso${av>1?"s":""}</span>`:"",
+    ].filter(Boolean).join("");
+    return `<div class="card obra-card" onclick="irDetalhe(${o.id})">
+      <div class="stripe" style="background:${cfg.color}"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <h3 style="font-size:16px;line-height:1.2;flex:1;padding-right:8px">${o.nome}</h3>
+        <span class="badge" style="background:${cfg.bg};color:${cfg.color};flex-shrink:0">${cfg.label}</span>
+      </div>
+      ${o.instrumento?`<p style="font-size:11px;color:#92400E;font-weight:700;margin-bottom:4px">📄 ${o.instrumento}</p>`:""}
+      ${o.objeto?`<p style="font-size:12px;color:#555;margin-bottom:5px;line-height:1.4">${o.objeto.length>80?o.objeto.slice(0,80)+"...":o.objeto}</p>`:""}
+      <p style="font-size:11px;color:#78716C;margin-bottom:10px">${o.fornecedor||""}</p>
+      <div class="progress-bar" style="margin-bottom:5px"><div class="progress-fill" style="width:${o.progresso}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#78716C;margin-bottom:10px">
+        <span>${o.progresso}%</span><span>Prazo: ${fmtDate(o.prazo)}</span>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">${chips}</div>
+    </div>`;
+  }).join("");
+}
+
+// ── DETALHE ────────────────────────────────────────────────────────────
+function renderDetalhe(){ renderHeader(); renderAbas(); renderConteudo(); }
+
+function renderHeader(){
+  const o=getObra(); if(!o) return;
+  const dr=diasR(o.prazo, o.aditivoDias);
+  const opts=Object.entries(STATUS_CFG).map(([k,v])=>`<option value="${k}" ${o.status===k?"selected":""}>${v.label}</option>`).join("");
+  const btnApagar=isAdmin()?`<button class="btn btn-red" style="font-size:12px" onclick="apagarObra(${o.id})">🗑️ Apagar</button>`:"";
+  document.getElementById("det-header").innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+      <div>
+        <button class="btn btn-ghost" style="font-size:12px;margin-bottom:8px" onclick="irLista()">← Voltar</button>
+        <h2 style="font-size:24px;font-weight:900;margin-bottom:4px">${o.nome}</h2>
+        ${o.objeto?`<p style="color:#444;font-size:14px;margin-bottom:4px">${o.objeto}</p>`:""}
+        <p style="color:#78716C;font-size:13px">👷 ${o.fiscal||"—"} &nbsp;|&nbsp; 🏢 ${o.fornecedor||"—"}</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        ${!isGestor()?btnApagar:''}
+        ${isAdmin() && o.status!=='concluida'?`<button class="btn" style="font-size:12px;background:#10B981;color:white;border:none" onclick="finalizarObra(${o.id})">✅ Finalizar</button>`:''}
+        ${!isGestor()?`<button class="btn btn-ghost" style="font-size:12px" onclick="editarObra(${o.id})">✏️ Editar</button>`:''}
+        ${!isGestor()?`<select class="input" style="width:auto;font-size:13px;padding:6px 28px 6px 10px" onchange="mudarStatus(this.value)">${opts}</select>`:`<span class="badge" style="background:${STATUS_CFG[o.status]?.bg||'#F5F0E8'};color:${STATUS_CFG[o.status]?.color||'#78716C'};padding:6px 14px">${STATUS_CFG[o.status]?.label||o.status}</span>`}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      ${o.instrumento?`<span style="background:#F5F0E8;padding:4px 12px;border-radius:6px;font-size:12px">📄 ${o.instrumento}</span>`:""}
+      ${o.idGed?`<span style="background:#EDE9FE;color:#5B21B6;padding:4px 12px;border-radius:6px;font-size:12px">🗂️ GED: ${o.idGed}</span>`:`<span style="background:#F3F4F6;color:#9CA3AF;padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer" onclick="editarObra(${o.id})">🗂️ Sem GED</span>`}
+      ${o.valor?`<span style="background:#D1FAE5;color:#065F46;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:700">💰 ${o.valor}${o.aditivoValor?` <span style="color:#10B981">(+${o.aditivoValor})</span>`:''}</span>`:""}
+  ${o.vistoriaRealizada?`<span style="background:#D1FAE5;color:#065F46;padding:4px 12px;border-radius:6px;font-size:12px">🔍 Vistoria realizada${o.vistoriaData?' em '+fmtDate(o.vistoriaData):''}</span>`:`<span style="background:#FEE2E2;color:#EF4444;padding:4px 12px;border-radius:6px;font-size:12px">🔍 Vistoria pendente</span>`}
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:#78716C;margin-bottom:5px"><span>Progresso</span><span style="font-weight:700;color:var(--gold)" id="pct">${o.progresso}%</span></div>
+      <div class="progress-bar" style="height:10px"><div class="progress-fill" id="pfill" style="width:${o.progresso}%"></div></div>
+      ${!isGestor()?`<input type="range" min="0" max="100" value="${o.progresso}" oninput="mudarProg(this.value)">`:''}
+    </div>
+    <div class="meta-boxes">
+      <div class="meta-box"><div class="meta-label">Início</div><div class="meta-value">${fmtDate(o.inicio)}</div></div>
+      <div class="meta-box"><div class="meta-label">Prazo Final</div><div class="meta-value">${fmtDate(o.prazo)}${o.aditivoDias?`<span style="font-size:11px;color:#3B82F6;display:block;margin-top:2px">+${o.aditivoDias} dias aditivo</span>`:""}</div></div>
+      ${dr!==null?`<div class="meta-box" style="background:${dr<0?"#FEE2E2":dr<30?"#FEF3C7":"#F5F0E8"}"><div class="meta-label">Dias Restantes</div><div class="meta-value" style="color:${dr<0?"#EF4444":dr<30?"#F59E0B":"inherit"}">${dr}</div></div>`:""}
+      ${o.responsavel?`<div class="meta-box"><div class="meta-label">Responsável</div><div class="meta-value">${o.responsavel}</div></div>`:""}
+    </div>`;
+}
+
+function renderAbas(){
+  const o=getObra(); if(!o) return;
+  const pa=safeArr(o.pendencias).filter(p=>!p.concluida).length;
+  const av=safeArr(o.avisos).length;
+  const semComent = !temComentarioQuinzena(o);
+  const evs = safeArr(o.eventos).length;
+  const tabs=[
+    {id:"geral",label:"📋 Geral"},
+    {id:"comentarios",label:`💬 Quinzenal${semComent?' ⚠️':''}`},
+    {id:"avisos",label:`🔔 Avisos${av?" ("+av+")":""}`},
+    {id:"pendencias",label:`⚡ Pendências${pa?" ("+pa+")":""}`},
+    ...(!isGestor()?[{id:"atualizacoes",label:"📝 Atualizações"}]:[]),
+    {id:"execucao",label:`📅 Execução${evs?" ("+evs+")":""}`},
+  ];
+  document.getElementById("det-abas").innerHTML=tabs.map(t=>`<button class="aba ${abaAtiva===t.id?"active":""}" onclick="trocarAba('${t.id}')">${t.label}</button>`).join("");
+}
+
+function trocarAba(id){ abaAtiva=id; renderAbas(); renderConteudo(); }
+
+function renderConteudo(){
+  const o=getObra(); if(!o) return;
+  const el=document.getElementById("det-content");
+  if(abaAtiva==="geral") el.innerHTML=tabGeral(o);
+  else if(abaAtiva==="comentarios") el.innerHTML=tabComentarios(o);
+  else if(abaAtiva==="avisos") el.innerHTML=tabAvisos(o);
+  else if(abaAtiva==="pendencias") el.innerHTML=tabPendencias(o);
+  else if(abaAtiva==="execucao") el.innerHTML=tabExecucao(o);
+  else el.innerHTML=tabAtualizacoes(o);
+}
+
+function tabGeral(o){
+  const av=safeArr(o.avisos).slice(0,3);
+  const pa=safeArr(o.pendencias).filter(p=>!p.concluida).slice(0,5);
+  const at=safeArr(o.atualizacoes).slice(0,3);
+  const cs=safeArr(o.comentariosQuinzenais);
+  const ultimoComent=cs.length?[...cs].sort((a,b)=>b.data.localeCompare(a.data))[0]:null;
+  return `<div style="display:flex;flex-direction:column;gap:16px">
+    <div class="geral-grid">
+      <div class="card" style="padding:20px">
+        <h4 style="font-size:16px;margin-bottom:14px">🔔 Últimos Avisos</h4>
+        ${!av.length?'<p class="empty">Sem avisos.</p>':av.map(a=>{const t=AVISO_CFG[a.tipo]||AVISO_CFG.info;return`<div style="background:#DBEAFE;border-radius:8px;padding:12px;margin-bottom:8px;border-left:3px solid ${t.color}"><p style="font-size:14px">${t.icon} ${a.texto}</p><p style="color:#78716C;font-size:11px;margin-top:4px">${fmtDate(a.data)}</p></div>`;}).join("")}
+      </div>
+      <div class="card" style="padding:20px">
+        <h4 style="font-size:16px;margin-bottom:14px">⚡ Pendências Abertas</h4>
+        ${!pa.length?'<p class="empty">Sem pendências abertas.</p>':pa.map(p=>{const pc=PRIO_CFG[p.prioridade]||PRIO_CFG.media;return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:14px"><span style="color:${pc.color}">●</span><span style="flex:1">${p.texto}</span><span class="badge" style="background:#F5F0E8;color:${pc.color}">${pc.label}</span></div>`;}).join("")}
+      </div>
+    </div>
+    <div class="geral-grid">
+      <div class="card" style="padding:20px">
+        <h4 style="font-size:16px;margin-bottom:14px">📝 Últimas Atualizações</h4>
+        ${!at.length?'<p class="empty">Sem atualizações.</p>':at.map(a=>`<div style="border-left:3px solid var(--border2);padding:10px 12px;margin-bottom:8px;border-radius:0 6px 6px 0"><p style="font-size:13px;line-height:1.5">${a.texto}</p><p style="color:#78716C;font-size:11px;margin-top:4px">${fmtDate(a.data)}</p></div>`).join("")}
+      </div>
+      <div class="card" style="padding:20px">
+        <h4 style="font-size:16px;margin-bottom:14px">💬 Último Comentário Quinzenal</h4>
+        ${!ultimoComent?'<p class="empty">Sem comentários.</p>':`<div style="border-left:3px solid var(--gold);padding:10px 12px;border-radius:0 6px 6px 0"><p style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:6px">${quinzenaLabel(ultimoComent.data)}</p><p style="font-size:13px;line-height:1.6">${ultimoComent.texto}</p></div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+function tabAvisos(o){
+  const av=safeArr(o.avisos);
+  return `<div><button class="btn btn-blue" style="margin-bottom:20px" onclick="abrirModal('modal-aviso')">+ Adicionar Aviso</button>
+    ${!av.length?'<p class="empty">Nenhum aviso.</p>':av.map(a=>{const t=AVISO_CFG[a.tipo]||AVISO_CFG.info;return`<div class="card aviso-item" style="border-left-color:${t.color}"><div style="display:flex;justify-content:space-between"><div style="flex:1"><p style="font-size:15px">${t.icon} ${a.texto}</p><p style="color:#78716C;font-size:12px;margin-top:5px">${fmtDate(a.data)}</p></div><button class="remove-btn" onclick="remAviso(${a.id})">✕</button></div></div>`;}).join("")}
+  </div>`;
+}
+
+function tabPendencias(o){
+  const pends=safeArr(o.pendencias);
+  const ab=pends.filter(p=>!p.concluida);
+  const ck=pends.filter(p=>p.concluida);
+  function pi(p){const pc=PRIO_CFG[p.prioridade]||PRIO_CFG.media;return`<div class="card pend-item" style="opacity:${p.concluida?.6:1}"><input type="checkbox" ${p.concluida?"checked":""} onchange="togPend(${p.id})"><span style="flex:1;font-size:15px;${p.concluida?"text-decoration:line-through":""}">${p.texto}</span><span class="badge" style="background:#F5F0E8;color:${pc.color}">${pc.label}</span><button class="remove-btn" onclick="remPend(${p.id})">✕</button></div>`;}
+  return `<div><button class="btn btn-amber" style="margin-bottom:20px" onclick="abrirModal('modal-pend')">+ Adicionar Pendência</button>
+    ${!pends.length?'<p class="empty">Sem pendências.</p>':""}
+    ${ab.map(pi).join("")}
+    ${ck.length?`<p style="font-size:12px;color:#78716C;font-weight:700;text-transform:uppercase;margin:16px 0 8px">Concluídas</p>${ck.map(pi).join("")}`:""}
+  </div>`;
+}
+
+function tabAtualizacoes(o){
+  const at=safeArr(o.atualizacoes);
+  return `<div><button class="btn btn-green" style="margin-bottom:24px" onclick="abrirModal('modal-atu')">+ Registrar Atualização</button>
+    ${!at.length?'<p class="empty">Sem atualizações.</p>':at.map((a,i)=>`<div style="display:flex;gap:14px;margin-bottom:18px">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${at.length-i}</div>
+        ${i<at.length-1?'<div style="width:2px;flex:1;background:#E8DFC8;margin-top:4px"></div>':""}
+      </div>
+      <div class="card" style="flex:1;padding:14px"><div style="display:flex;justify-content:space-between"><p style="font-size:14px;flex:1;padding-right:10px">${a.texto}</p><button class="remove-btn" onclick="remAtu(${a.id})">✕</button></div><p style="color:#78716C;font-size:12px;margin-top:5px">${fmtDate(a.data)}</p></div>
+    </div>`).join("")}
+  </div>`;
+}
+
+// ── AÇÕES ──────────────────────────────────────────────────────────────
+function mudarStatus(val){
+  obras=obras.map(o=>o.id===obraAtiva?{...o,status:val}:o);
+  debSalvar(obraAtiva); renderDetalhe();
+}
+function mudarProg(val){
+  document.getElementById("pct").textContent=val+"%";
+  document.getElementById("pfill").style.width=val+"%";
+  obras=obras.map(o=>o.id===obraAtiva?{...o,progresso:Number(val)}:o);
+  debSalvar(obraAtiva);
+}
+function togPend(pid){
+  obras=obras.map(o=>{if(o.id!==obraAtiva)return o;return{...o,pendencias:safeArr(o.pendencias).map(p=>p.id===pid?{...p,concluida:!p.concluida}:p)};});
+  debSalvar(obraAtiva); renderConteudo(); renderAbas();
+}
+function remAviso(aid){
+  if(!confirm("Remover?"))return;
+  obras=obras.map(o=>o.id!==obraAtiva?o:{...o,avisos:safeArr(o.avisos).filter(a=>a.id!==aid)});
+  debSalvar(obraAtiva); renderConteudo(); renderAbas();
+}
+function remPend(pid){
+  if(!confirm("Remover?"))return;
+  obras=obras.map(o=>o.id!==obraAtiva?o:{...o,pendencias:safeArr(o.pendencias).filter(p=>p.id!==pid)});
+  debSalvar(obraAtiva); renderConteudo(); renderAbas();
+}
+function remAtu(aid){
+  if(!confirm("Remover?"))return;
+  obras=obras.map(o=>o.id!==obraAtiva?o:{...o,atualizacoes:safeArr(o.atualizacoes).filter(a=>a.id!==aid)});
+  debSalvar(obraAtiva); renderConteudo();
+}
+
+// ── MODAIS ─────────────────────────────────────────────────────────────
+function abrirModal(id){ document.getElementById(id).classList.add("open"); }
+function fecharModal(id){ document.getElementById(id).classList.remove("open"); }
+document.querySelectorAll(".modal-overlay").forEach(el=>{
+  el.addEventListener("click",e=>{if(e.target===el)fecharModal(el.id);});
+});
+
+function editarObra(id){
+  const o=obras.find(x=>x.id===id); if(!o) return;
+  editandoId=id;
+  document.getElementById("modal-obra-titulo").textContent="Editar Obra";
+  document.getElementById("f-nome").value=o.nome||"";
+  document.getElementById("f-objeto").value=o.objeto||"";
+  document.getElementById("f-fiscal").value=o.fiscal||"";
+  document.getElementById("f-resp").value=o.responsavel||"";
+  document.getElementById("f-forn").value=o.fornecedor||"";
+  document.getElementById("f-instr").value=o.instrumento||"";
+  document.getElementById("f-ged").value=o.idGed||"";
+  document.getElementById("f-valor").value=o.valor||"";
+  document.getElementById("f-aditivo-dias").value=o.aditivoDias||"";
+  document.getElementById("f-aditivo-valor").value=o.aditivoValor||"";
+  document.getElementById("f-link").value=o.linkPasta||"";
+  document.getElementById("f-vistoria").checked=o.vistoriaRealizada||false;
+  document.getElementById("f-vistoria-data").value=toInputDate(o.vistoriaData);
+  document.getElementById("f-inicio").value=toInputDate(o.inicio);
+  document.getElementById("f-prazo-dias").value=o.prazoDias||"";
+  document.getElementById("f-status").value=o.status||"andamento";
+  abrirModal("modal-obra");
+}
+
+function salvarObra(){
+  const nome=document.getElementById("f-nome").value.trim();
+  if(!nome){alert("Preencha o nome.");return;}
+  const inicio=document.getElementById("f-inicio").value;
+  const prazoDias=document.getElementById("f-prazo-dias").value;
+  const prazoFinal=calcPrazoFinal(inicio,prazoDias);
+
+  if(editandoId){
+    const o=obras.find(x=>x.id===editandoId);
+    obras=obras.map(x=>x.id!==editandoId?x:{
+      ...x, nome,
+      objeto:document.getElementById("f-objeto").value.trim(),
+      fiscal:document.getElementById("f-fiscal").value.trim(),
+      responsavel:document.getElementById("f-resp").value.trim(),
+      fornecedor:document.getElementById("f-forn").value.trim(),
+      instrumento:document.getElementById("f-instr").value.trim(),
+      idGed:document.getElementById("f-ged").value.trim(),
+      valor:document.getElementById("f-valor").value.trim(),
+      aditivoDias:document.getElementById("f-aditivo-dias").value.trim(),
+      aditivoValor:document.getElementById("f-aditivo-valor").value.trim(),
+      linkPasta:document.getElementById("f-link").value.trim(),
+      vistoriaRealizada:document.getElementById("f-vistoria").checked,
+      vistoriaData:document.getElementById("f-vistoria-data").value,
+      inicio:inicio||x.inicio,
+      prazoDias:prazoDias||x.prazoDias,
+      prazo:calcPrazoFinal(inicio||x.inicio, prazoDias||x.prazoDias, document.getElementById('f-aditivo-dias').value||x.aditivoDias)||x.prazo,
+      status:document.getElementById("f-status").value,
+    });
+    salvarUma(editandoId);
+    fecharModal("modal-obra");
+    editandoId=null;
+    document.getElementById("modal-obra-titulo").textContent="Nova Obra";
+    if(obraAtiva) renderDetalhe(); else renderLista();
+  } else {
+    const nova={
+      id:uid(), nome,
+      objeto:document.getElementById("f-objeto").value.trim(),
+      fiscal:document.getElementById("f-fiscal").value.trim(),
+      responsavel:document.getElementById("f-resp").value.trim(),
+      fornecedor:document.getElementById("f-forn").value.trim(),
+      instrumento:document.getElementById("f-instr").value.trim(),
+      idGed:document.getElementById("f-ged").value.trim(),
+      valor:document.getElementById("f-valor").value.trim(),
+      aditivoDias:document.getElementById("f-aditivo-dias").value.trim(),
+      aditivoValor:document.getElementById("f-aditivo-valor").value.trim(),
+      linkPasta:document.getElementById("f-link").value.trim(),
+      vistoriaRealizada:document.getElementById("f-vistoria").checked,
+      vistoriaData:document.getElementById("f-vistoria-data").value,
+      inicio, prazoDias, prazo:prazoFinal,
+      status:document.getElementById("f-status").value,
+      statusOriginal:"",
+      progresso:0, avisos:[], pendencias:[], atualizacoes:[],
+    };
+    obras.push(nova);
+    salvarUma(nova.id);
+    fecharModal("modal-obra");
+    popularFiltros();
+    renderLista();
+  }
+  ["f-nome","f-objeto","f-fiscal","f-resp","f-forn","f-instr","f-ged","f-valor","f-aditivo-dias","f-aditivo-valor","f-link","f-inicio","f-prazo-dias","f-vistoria-data"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("f-vistoria").checked=false;
+}
+
+function addAviso(){
+  const txt=document.getElementById("f-aviso").value.trim(); if(!txt)return;
+  const novo={id:uid(),texto:txt,data:hoje(),tipo:document.getElementById("f-aviso-tipo").value};
+  obras=obras.map(o=>o.id!==obraAtiva?o:{...o,avisos:[...safeArr(o.avisos),novo]});
+  debSalvar(obraAtiva); fecharModal("modal-aviso");
+  document.getElementById("f-aviso").value="";
+  renderConteudo(); renderAbas();
+}
+function addPendencia(){
+  const tipo=document.getElementById("f-pend-tipo").value;
+  if(!tipo){alert("Selecione o tipo de pendência.");return;}
+  const TIPOS={"assinar_termo":"Aguardando assinatura do Termo de Recebimento","aguard_avcb":"Aguardando emissão do AVCB","aguard_nf":"Aguardando envio de Nota Fiscal pelo fornecedor","aguard_relatorio":"Aguardando envio de relatório pelo fornecedor","aguard_pagamento":"Aguardando pagamento da medição","medicao_validar":"Aguardando validação da medição pelo fiscal","validar_termo":"Aguardando validação do Termo de Recebimento","analisar_aditivo":"Analisar solicitação de aditivo","elaborar_termo_rec":"Elaborar Termo de Recebimento Definitivo","medicao_elaborar":"Medição em elaboração","reuniao_abertura":"Realizar reunião de abertura de obra","outro":"Outros"};
+  const descExtra=document.getElementById("f-pend").value.trim();
+  const textoBase=TIPOS[tipo]||tipo;
+  const texto=descExtra?textoBase+' — '+descExtra:textoBase;
+  const nova={id:uid(),tipo,texto,prioridade:document.getElementById("f-pend-prio").value,concluida:false};
+  obras=obras.map(o=>o.id!==obraAtiva?o:{...o,pendencias:[...safeArr(o.pendencias),nova]});
+  debSalvar(obraAtiva); fecharModal("modal-pend");
+  document.getElementById("f-pend").value="";
+  document.getElementById("f-pend-tipo").value="";
+  renderConteudo(); renderAbas();
+}
+function addAtualizacao(){
+  const txt=document.getElementById("f-atu").value.trim(); if(!txt)return;
+  const nova={id:uid(),texto:txt,data:hoje()};
+  obras=obras.map(o=>o.id!==obraAtiva?o:{...o,atualizacoes:[nova,...safeArr(o.atualizacoes)]});
+  debSalvar(obraAtiva); fecharModal("modal-atu");
+  document.getElementById("f-atu").value="";
+  renderConteudo();
+}
+
+
+// ── COMENTÁRIOS QUINZENAIS ──────────────────────────────────────────────────
+function quinzenaAtual(){
+  const hoje = new Date();
+  const dia = hoje.getDate();
+  const m = String(hoje.getMonth()+1).padStart(2,'0');
+  const y = hoje.getFullYear();
+  return dia <= 15 ? `${y}-${m}-15` : `${y}-${m}-${new Date(y, hoje.getMonth()+1, 0).getDate()}`;
+}
+
+function quinzenaLabel(data){
+  if(!data) return '';
+  const [y,m,d] = data.split('-');
+  const dia = parseInt(d);
+  return `${dia<=15?'1ª':'2ª'} Quinzena de ${new Date(y,parseInt(m)-1,1).toLocaleString('pt-BR',{month:'long'})}/${y}`;
+}
+
+function temRetornoSemanal(o){
+  const atualizacoes = safeArr(o.atualizacoes);
+  if(!atualizacoes.length) return false;
+  const seteAtras = new Date();
+  seteAtras.setDate(seteAtras.getDate()-7);
+  return atualizacoes.some(a=>{
+    if(!a.data) return false;
+    return new Date(a.data) >= seteAtras;
+  });
+}
+
+function temComentarioQuinzena(o){
+  const qa = quinzenaAtual();
+  const cs = safeArr(o.comentariosQuinzenais);
+  return cs.some(c => c.data === qa);
+}
+
+function abrirModalComentario(){
+  const qa = quinzenaAtual();
+  document.getElementById("coment-quinzena-label").textContent = quinzenaLabel(qa);
+  const o = getObra();
+  const cs = safeArr(o.comentariosQuinzenais);
+  const existente = cs.find(c => c.data === qa);
+  document.getElementById("f-coment").value = existente ? existente.texto : '';
+  abrirModal('modal-coment');
+}
+
+function salvarComentario(){
+  const txt = document.getElementById("f-coment").value.trim();
+  if(!txt) return;
+  const qa = quinzenaAtual();
+  obras = obras.map(o => {
+    if(o.id !== obraAtiva) return o;
+    const cs = safeArr(o.comentariosQuinzenais).filter(c => c.data !== qa);
+    cs.push({data: qa, texto: txt});
+    cs.sort((a,b) => a.data.localeCompare(b.data));
+    return {...o, comentariosQuinzenais: cs};
+  });
+  debSalvar(obraAtiva);
+  fecharModal('modal-coment');
+  document.getElementById("f-coment").value = '';
+  renderConteudo(); renderAbas();
+}
+
+function tabComentarios(o){
+  const cs = safeArr(o.comentariosQuinzenais);
+  const qa = quinzenaAtual();
+  const temAtual = cs.some(c => c.data === qa);
+  const sorted = [...cs].sort((a,b) => b.data.localeCompare(a.data));
+
+  let html = `<div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      ${isAdmin() ? `<button class="btn btn-dark" onclick="abrirModalComentario()">
+        ${temAtual ? '✏️ Editar Comentário' : '+ Novo Comentário'} — ${quinzenaLabel(qa)}
+      </button>` : ''}
+      ${!temAtual ? `<span style="background:#FEE2E2;color:#EF4444;padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700">⚠️ Sem comentário nesta quinzena</span>` : ''}
+    </div>`;
+
+  if(!sorted.length){
+    html += `<p class="empty">Nenhum comentário registrado.</p>`;
+  } else {
+    // Comparação entre as duas últimas quinzenas
+    if(sorted.length >= 2){
+      html += `<div class="card" style="padding:20px;margin-bottom:20px;border-left:4px solid var(--gold)">
+        <h4 style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:16px">📊 Comparação Quinzenal</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <p style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">${quinzenaLabel(sorted[1].data)}</p>
+            <p style="font-size:13px;line-height:1.6;color:#555">${sorted[1].texto}</p>
+          </div>
+          <div style="border-left:1px solid var(--border);padding-left:16px">
+            <p style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;margin-bottom:6px">${quinzenaLabel(sorted[0].data)} ← Atual</p>
+            <p style="font-size:13px;line-height:1.6;color:var(--ink)">${sorted[0].texto}</p>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    html += `<h4 style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Histórico</h4>`;
+    sorted.forEach(c => {
+      const isAtual = c.data === qa;
+      html += `<div class="card" style="padding:16px;margin-bottom:10px;${isAtual?'border-left:3px solid var(--gold)':''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:700;color:${isAtual?'var(--gold)':'var(--muted)'}">${quinzenaLabel(c.data)}</span>
+          ${isAtual?`<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">ATUAL</span>`:''}
+        </div>
+        <p style="font-size:14px;line-height:1.6">${c.texto}</p>
+      </div>`;
+    });
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+
+// ── CALENDÁRIO ──────────────────────────────────────────────────────────────
+let calAno = new Date().getFullYear();
+let calMes = new Date().getMonth();
+let vistaCalendario = 'mensal';
+let eventoEditando = null;
+let eventoDetalhe = null;
+
+function setVistaCalendario(v){
+  vistaCalendario = v;
+  document.getElementById('btn-cal-mensal').className = v==='mensal'?'btn btn-dark':'btn btn-ghost';
+  document.getElementById('btn-cal-lista').className = v==='lista'?'btn btn-dark':'btn btn-ghost';
+  renderCalendario();
+}
+
+function navMes(d){ calMes+=d; if(calMes>11){calMes=0;calAno++;} if(calMes<0){calMes=11;calAno--;} renderCalendario(); }
+function irHoje(){ calAno=new Date().getFullYear(); calMes=new Date().getMonth(); renderCalendario(); }
+
+function todosEventos(){
+  const evs=[];
+  obras.forEach(o=>{
+    safeArr(o.eventos).forEach(ev=>{
+      safeArr(ev.periodos).forEach(p=>{
+        if(p.inicio) evs.push({...ev, obraId:o.id, obraInstr:o.instrumento||o.nome, obraNome:o.nome, periodoInicio:p.inicio, periodoFim:p.fim});
+      });
+    });
+  });
+  return evs;
+}
+
+function renderCalendario(){
+  const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const titulo = document.getElementById('cal-titulo');
+  const el = document.getElementById('cal-conteudo');
+  if(!titulo || !el) return;
+  titulo.textContent = meses[calMes]+' '+calAno;
+  if(vistaCalendario==='mensal') el.innerHTML = renderMensal();
+  else el.innerHTML = renderListaSemanal();
+  // Atualizar botões de vista
+  const btnM = document.getElementById('btn-cal-mensal');
+  const btnL = document.getElementById('btn-cal-lista');
+  if(btnM) btnM.className = vistaCalendario==='mensal'?'btn btn-dark':'btn btn-ghost';
+  if(btnL) btnL.className = vistaCalendario==='lista'?'btn btn-dark':'btn btn-ghost';
+}
+
+function renderMensal(){
+  const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const primeiroDia = new Date(calAno, calMes, 1).getDay();
+  const ultimoDia = new Date(calAno, calMes+1, 0).getDate();
+  const evs = todosEventos();
+  const hoje = new Date().toISOString().slice(0,10);
+
+  let html = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#E8DFC8;border:1px solid #E8DFC8;border-radius:10px;overflow:hidden">`;
+  dias.forEach(d=>{ html+=`<div style="background:#F5F0E8;padding:8px;text-align:center;font-size:12px;font-weight:700;color:#92400E">${d}</div>`; });
+
+  for(let i=0;i<primeiroDia;i++) html+=`<div style="background:#FFFEF9;padding:8px;min-height:80px"></div>`;
+
+  for(let d=1;d<=ultimoDia;d++){
+    const dataStr = `${calAno}-${String(calMes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const evsHoje = evs.filter(e=>{
+      if(!e.periodoInicio) return false;
+      const ini = e.periodoInicio.slice(0,10);
+      const fim = e.periodoFim ? e.periodoFim.slice(0,10) : ini;
+      return dataStr>=ini && dataStr<=fim;
+    });
+    const isHoje = dataStr===hoje;
+    html+=`<div style="background:#FFFEF9;padding:6px;min-height:80px;${isHoje?'background:#FEF3C7;':''}" >
+      <div style="font-size:13px;font-weight:700;color:${isHoje?'#92400E':'#555'};margin-bottom:4px">${d}</div>
+      ${evsHoje.slice(0,3).map(e=>`<div onclick="verEvento('${e.obraId}','${e.id}')" style="background:#92400E;color:white;border-radius:4px;padding:2px 5px;font-size:10px;margin-bottom:2px;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${e.obraInstr}</div>`).join('')}
+      ${evsHoje.length>3?`<div style="font-size:10px;color:#78716C">+${evsHoje.length-3} mais</div>`:''}
+    </div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
+function renderListaSemanal(){
+  const evs = todosEventos();
+  const hoje = new Date(calAno, calMes, 1);
+  const fim = new Date(calAno, calMes+1, 0);
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  // Agrupar por semana
+  let html = '';
+  let semanaEvs = [];
+  let cur = new Date(hoje);
+  while(cur<=fim){
+    const dataStr = cur.toISOString().slice(0,10);
+    const evsD = evs.filter(e=>{
+      if(!e.periodoInicio) return false;
+      const ini = e.periodoInicio.slice(0,10);
+      const fimD = e.periodoFim?e.periodoFim.slice(0,10):ini;
+      return dataStr>=ini && dataStr<=fimD;
+    });
+    if(evsD.length) semanaEvs.push({data:dataStr, dia:cur.getDate(), mes:meses[cur.getMonth()], evs:evsD});
+    cur.setDate(cur.getDate()+1);
+  }
+  if(!semanaEvs.length) return `<p class="empty">Nenhum evento neste mês.</p>`;
+  semanaEvs.forEach(s=>{
+    html+=`<div style="margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:#92400E;border-bottom:1px solid #E8DFC8;padding-bottom:4px;margin-bottom:8px">${s.dia} de ${s.mes}</div>
+      ${s.evs.map(e=>`<div onclick="verEvento('${e.obraId}','${e.id}')" style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:#FFFEF9;border:1px solid #E8DFC8;border-left:4px solid #92400E;border-radius:8px;margin-bottom:6px;cursor:pointer">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:13px">${e.obraNome}</div>
+          <div style="font-size:11px;color:#92400E">${e.obraInstr}</div>
+          ${e.periodoInicio?`<div style="font-size:11px;color:#78716C">🕐 ${e.periodoInicio.slice(11,16)||''} ${e.periodoFim?' → '+e.periodoFim.slice(11,16):''}</div>`:''}
+        </div>
+      </div>`).join('')}
+    </div>`;
+  });
+  return html;
+}
+
+function verEvento(obraId, evId){
+  const o = obras.find(x=>String(x.id)===String(obraId));
+  if(!o) return;
+  const ev = safeArr(o.eventos).find(e=>String(e.id)===String(evId));
+  if(!ev) return;
+  eventoDetalhe = {obraId, evId};
+  document.getElementById('det-ev-titulo').textContent = o.nome;
+  const podes = podeEditar();
+  document.getElementById('btn-det-editar').style.display = podes?'':'none';
+  document.getElementById('btn-det-excluir').style.display = podes?'':'none';
+  let html = `<div style="font-size:13px;color:#92400E;font-weight:700;margin-bottom:8px">${o.instrumento||''}</div>`;
+  safeArr(ev.periodos).forEach((p,i)=>{
+    html+=`<div style="padding:8px 12px;background:#F5F0E8;border-radius:6px;margin-bottom:6px;font-size:13px">
+      <b>Período ${i+1}:</b> ${p.inicio?p.inicio.replace('T',' ').slice(0,16):'—'} → ${p.fim?p.fim.replace('T',' ').slice(0,16):'—'}
+    </div>`;
+  });
+  if(ev.obs) html+=`<div style="margin-top:10px;padding:10px;background:#FEF3C7;border-radius:6px;font-size:13px">${ev.obs}</div>`;
+  document.getElementById('det-ev-conteudo').innerHTML = html;
+  abrirModal('modal-detalhe-evento');
+}
+
+function editarEventoAtual(){
+  if(!eventoDetalhe) return;
+  fecharModal('modal-detalhe-evento');
+  const o = obras.find(x=>String(x.id)===String(eventoDetalhe.obraId));
+  const ev = safeArr(o.eventos).find(e=>String(e.id)===String(eventoDetalhe.evId));
+  abrirModalEvento(ev, eventoDetalhe.obraId);
+}
+
+function excluirEventoAtual(){
+  if(!eventoDetalhe || !confirm('Excluir este evento?')) return;
+  const {obraId, evId} = eventoDetalhe;
+  obras = obras.map(o=>String(o.id)!==String(obraId)?o:{...o,eventos:safeArr(o.eventos).filter(e=>String(e.id)!==String(evId))});
+  debSalvar(obraId);
+  fecharModal('modal-detalhe-evento');
+  renderCalendario();
+  showToast('🗑 Evento excluído!');
+}
+
+function addPeriodo(inicio='', fim=''){
+  const cont = document.getElementById('f-ev-periodos');
+  const div = document.createElement('div');
+  div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap';
+  div.innerHTML=`<div style="flex:1"><label class="field-label" style="font-size:11px">Início</label><input type="datetime-local" class="input" style="font-size:12px" value="${inicio}"></div>
+    <div style="flex:1"><label class="field-label" style="font-size:11px">Fim</label><input type="datetime-local" class="input" style="font-size:12px" value="${fim}"></div>
+    <button class="btn btn-ghost" style="font-size:18px;padding:4px 10px;margin-top:18px" onclick="this.parentElement.remove()">✕</button>`;
+  cont.appendChild(div);
+}
+
+function abrirModalEvento(ev, obraIdPresel){
+  eventoEditando = ev || null;
+  // Popular select de obras
+  const sel = document.getElementById('f-ev-obra');
+  sel.innerHTML = '<option value="">Selecione a obra...</option>';
+  obras.filter(o=>o.status!=='concluida').forEach(o=>{
+    const opt = document.createElement('option');
+    opt.value = o.id;
+    opt.textContent = `${o.instrumento||''} — ${o.nome}`;
+    if(obraIdPresel && String(o.id)===String(obraIdPresel)) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  // Limpar periodos
+  document.getElementById('f-ev-periodos').innerHTML='';
+  document.getElementById('f-ev-obs').value='';
+  if(ev){
+    document.getElementById('f-ev-obs').value = ev.obs||'';
+    safeArr(ev.periodos).forEach(p=>addPeriodo(p.inicio||'',p.fim||''));
+  }
+  if(!ev || !safeArr(ev.periodos).length) addPeriodo();
+  abrirModal('modal-evento');
+}
+
+function salvarEvento(){
+  const obraId = document.getElementById('f-ev-obra').value;
+  if(!obraId){alert('Selecione a obra.');return;}
+  const obs = document.getElementById('f-ev-obs').value.trim();
+  const periodosDivs = document.getElementById('f-ev-periodos').children;
+  const periodos = [];
+  for(const d of periodosDivs){
+    const inputs = d.querySelectorAll('input');
+    if(inputs[0]&&inputs[0].value) periodos.push({inicio:inputs[0].value,fim:inputs[1]?inputs[1].value:''});
+  }
+  if(!periodos.length){alert('Adicione pelo menos um período.');return;}
+  const novoEv = {id:eventoEditando?eventoEditando.id:uid(), obs, periodos};
+  // Converter obraId para o tipo correto (numero ou string)
+  const obraIdNum = isNaN(obraId) ? obraId : Number(obraId);
+  obras = obras.map(o=>{
+    if(String(o.id)!==String(obraId)) return o;
+    const evs = safeArr(o.eventos).filter(e=>!eventoEditando||String(e.id)!==String(eventoEditando.id));
+    return {...o, eventos:[...evs,novoEv]};
+  });
+  debSalvar(obraIdNum);
+  fecharModal('modal-evento');
+  eventoEditando=null;
+  const calEl = document.getElementById('cal-conteudo');
+  if(calEl) renderCalendario();
+  showToast('✅ Evento salvo!');
+}
+
+function tabExecucao(o){
+  const evs = safeArr(o.eventos);
+  let html = `<div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h4 style="font-size:15px;font-weight:700">📅 Eventos de Execução</h4>
+      ${podeEditar()?`<button class="btn btn-amber" onclick="abrirModalEvento(null,'${o.id}')" style="font-size:12px">+ Novo Evento</button>`:''}
+    </div>`;
+  if(!evs.length){
+    html+=`<p class="empty">Nenhum evento cadastrado.</p>`;
+  } else {
+    evs.sort((a,b)=>{
+      const ia=safeArr(a.periodos)[0]?.inicio||'';
+      const ib=safeArr(b.periodos)[0]?.inicio||'';
+      return ia.localeCompare(ib);
+    }).forEach(ev=>{
+      html+=`<div class="card" style="padding:14px;margin-bottom:10px">
+        ${safeArr(ev.periodos).map((p,i)=>`<div style="font-size:13px;margin-bottom:4px">
+          <b>Período ${i+1}:</b> ${p.inicio?p.inicio.replace('T',' ').slice(0,16):'—'} → ${p.fim?p.fim.replace('T',' ').slice(0,16):'—'}
+        </div>`).join('')}
+        ${ev.obs?`<div style="font-size:12px;color:#78716C;margin-top:6px;padding:6px 10px;background:#F5F0E8;border-radius:6px">${ev.obs}</div>`:''}
+        ${podeEditar()?`<div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-ghost" style="font-size:11px" onclick="abrirModalEvento(${JSON.stringify(ev).replace(/"/g,'&quot;')},'${o.id}')">✏️ Editar</button>
+          <button class="btn" style="font-size:11px;background:#EF4444;color:white;border:none" onclick="excluirEventoObra('${o.id}','${ev.id}')">🗑 Excluir</button>
+        </div>`:''}
+      </div>`;
+    });
+  }
+  html+=`</div>`;
+  return html;
+}
+
+function excluirEventoObra(obraId, evId){
+  if(!confirm('Excluir este evento?')) return;
+  obras = obras.map(o=>String(o.id)!==String(obraId)?o:{...o,eventos:safeArr(o.eventos).filter(e=>String(e.id)!==String(evId))});
+  debSalvar(obraId);
+  renderConteudo();
+  renderAbas();
+  showToast('🗑 Evento excluído!');
+}
+
+
+// ── RELATÓRIO ──────────────────────────────────────────────────────────────────
+function gerarRelatorio(){
+  const hoje = new Date();
+  const dia = hoje.getDate();
+  const quinzena = dia <= 15 ? "1ª Quinzena" : "2ª Quinzena";
+  const mes = hoje.toLocaleString('pt-BR',{month:'long'});
+  const ano = hoje.getFullYear();
+  const dataFmt = String(hoje.getDate()).padStart(2,'0')+'/'+String(hoje.getMonth()+1).padStart(2,'0')+'/'+ano;
+
+  const total = obras.length;
+  const porStatus = {planejamento:0,andamento:0,concluida:0,pausada:0};
+  obras.forEach(o=>{ if(porStatus[o.status]!==undefined) porStatus[o.status]++; });
+  const comAtraso = obras.filter(o=>o.prazo&&o.status!=='concluida'&&diasR(o.prazo)<0).length;
+  const finalizadas = obras.filter(o=>o.status==='concluida');
+
+  const porResp = {};
+  obras.forEach(o=>{
+    const r = o.responsavel||'Sem responsável';
+    if(!porResp[r]) porResp[r]=[];
+    porResp[r].push(o);
+  });
+
+  let html = `<div style="font-family:'Source Sans 3',sans-serif;color:#1C1917">
+    <div style="text-align:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #E8DFC8">
+      <p style="font-size:11px;color:#78716C;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Banco do Nordeste</p>
+      <h1 style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;margin-bottom:4px">Relatório Quinzenal de Obras</h1>
+      <p style="font-size:14px;color:#78716C">${quinzena} de ${mes.charAt(0).toUpperCase()+mes.slice(1)} de ${ano} — Emitido em ${dataFmt}</p>
+    </div>
+    <div style="margin-bottom:24px">
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#92400E;border-bottom:1.5px solid #E8DFC8;padding-bottom:6px;margin-bottom:14px">📋 Resumo Geral</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px">
+        <div style="background:#F5F0E8;padding:12px;border-radius:8px;text-align:center"><div style="font-size:24px;font-weight:900;font-family:'Playfair Display',serif">${total}</div><div style="font-size:11px;color:#78716C;margin-top:3px">Total</div></div>
+        <div style="background:#DBEAFE;padding:12px;border-radius:8px;text-align:center"><div style="font-size:24px;font-weight:900;font-family:'Playfair Display',serif;color:#3B82F6">${porStatus.andamento}</div><div style="font-size:11px;color:#78716C;margin-top:3px">Em Andamento</div></div>
+        <div style="background:#FEE2E2;padding:12px;border-radius:8px;text-align:center"><div style="font-size:24px;font-weight:900;font-family:'Playfair Display',serif;color:#EF4444">${comAtraso}</div><div style="font-size:11px;color:#78716C;margin-top:3px">Em Atraso</div></div>
+        <div style="background:#D1FAE5;padding:12px;border-radius:8px;text-align:center"><div style="font-size:24px;font-weight:900;font-family:'Playfair Display',serif;color:#10B981">${porStatus.concluida}</div><div style="font-size:11px;color:#78716C;margin-top:3px">Finalizadas</div></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span style="background:#FEF3C7;color:#92400E;padding:3px 10px;border-radius:6px;font-size:12px">⏳ P/ Iniciar: ${porStatus.planejamento}</span>
+        <span style="background:#FEE2E2;color:#EF4444;padding:3px 10px;border-radius:6px;font-size:12px">⏸️ Pausadas: ${porStatus.pausada}</span>
+      </div>
+    </div>`;
+
+  // LISTA DE INTERVENÇÕES
+  const obrasAtivas = obras.filter(o=>o.status!=='concluida');
+  html+=`<div style="margin-bottom:24px">
+    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#92400E;border-bottom:1.5px solid #E8DFC8;padding-bottom:6px;margin-bottom:14px">📋 Lista de Intervenções</div>`;
+
+  obrasAtivas.forEach((o,idx)=>{
+    const cs = safeArr(o.comentariosQuinzenais).sort((a,b)=>a.data.localeCompare(b.data));
+    const ultimo = cs.length>0 ? cs[cs.length-1] : null;
+    const penultimo = cs.length>1 ? cs[cs.length-2] : null;
+
+    html+=`<div style="margin-bottom:20px;padding:16px;border:1px solid #E8DFC8;border-radius:8px;border-left:4px solid #92400E;">
+      <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:900;color:#92400E;margin-bottom:10px">${idx+1}. ${o.nome}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;color:#444;margin-bottom:12px">
+        ${o.objeto?`<div><span style="font-weight:700">Objeto:</span> ${o.objeto}</div>`:''}
+        ${o.fiscal?`<div><span style="font-weight:700">Fiscal:</span> ${o.fiscal}</div>`:''}
+        ${o.fornecedor?`<div><span style="font-weight:700">Fornecedor:</span> ${o.fornecedor}</div>`:''}
+        ${o.valor?`<div><span style="font-weight:700">Valor:</span> ${o.valor}</div>`:''}
+        ${o.instrumento?`<div><span style="font-weight:700">Instrumento:</span> ${o.instrumento}</div>`:''}
+        ${o.idGed?`<div><span style="font-weight:700">ID no GED:</span> ${o.idGed}</div>`:''}
+      </div>
+      ${penultimo?`<div style="margin-bottom:8px;padding:10px;background:#F5F0E8;border-radius:6px;font-size:12px">
+        <div style="font-weight:700;color:#78716C;margin-bottom:4px">Último comentário — ${fmtDate(penultimo.data)}:</div>
+        <div style="color:#444;line-height:1.6">${penultimo.texto}</div>
+      </div>`:''}
+      ${ultimo?`<div style="padding:10px;background:#FEF3C7;border-radius:6px;font-size:12px;border-left:3px solid #D97706">
+        <div style="font-weight:700;color:#92400E;margin-bottom:4px">Comentário atual — ${fmtDate(ultimo.data)}:</div>
+        <div style="color:#1C1917;line-height:1.6">${ultimo.texto}</div>
+      </div>`:`<div style="padding:10px;background:#FEE2E2;border-radius:6px;font-size:12px;color:#EF4444">⚠️ Sem comentário quinzenal registrado</div>`}
+    </div>`;
+  });
+
+  html+=`</div>`;
+
+
+
+  if(finalizadas.length>0){
+    html+=`<div style="margin-bottom:24px"><div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#92400E;border-bottom:1.5px solid #E8DFC8;padding-bottom:6px;margin-bottom:14px">✅ Obras Finalizadas</div>`;
+    finalizadas.forEach(o=>{
+      html+=`<div style="padding:10px 14px;border:1px solid #D1FAE5;border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+        <div><span style="font-weight:700;font-size:13px">${o.nome}</span><span style="font-size:12px;color:#78716C;margin-left:10px">${o.instrumento||''} ${o.responsavel?'| '+o.responsavel:''}</span></div>
+        <span style="font-size:11px;color:#10B981;font-weight:700">✅ Concluída</span>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  // CONTROLE DE OBRAS
+  const emAndamento = obras.filter(o=>o.status==='andamento' && o.prazo && diasR(o.prazo,o.aditivoDias)>=0);
+  const atrasadoTermino = obras.filter(o=>o.status!=='concluida' && o.status!=='pausada' && o.prazo && diasR(o.prazo,o.aditivoDias)<0);
+  const atrasadoInicio = obras.filter(o=>o.status==='planejamento' && o.prazo && diasR(o.prazo,o.aditivoDias)<0);
+
+  function tabelaControle(lista, titulo, cor){
+    if(!lista.length) return `<div style="margin-bottom:20px">
+      <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:${cor};margin-bottom:10px">${titulo} (0)</div>
+      <p style="font-size:13px;color:#78716C;font-style:italic">Nenhuma obra nesta categoria.</p>
+    </div>`;
+    return `<div style="margin-bottom:24px">
+      <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:${cor};margin-bottom:10px">${titulo} (${lista.length})</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:#F5F0E8">
+            <th style="text-align:left;padding:7px 10px;border:1px solid #E8DFC8;font-weight:700">Instrumento</th>
+            <th style="text-align:left;padding:7px 10px;border:1px solid #E8DFC8;font-weight:700">Agência / Objeto</th>
+            <th style="text-align:left;padding:7px 10px;border:1px solid #E8DFC8;font-weight:700">Responsável</th>
+            <th style="text-align:center;padding:7px 10px;border:1px solid #E8DFC8;font-weight:700;width:90px">Dias</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lista.map((o,i)=>{
+            const dr = o.prazo ? diasR(o.prazo,o.aditivoDias) : null;
+            return `<tr style="background:${i%2===0?'#FFFEF9':'#F5F0E8'}">
+              <td style="padding:7px 10px;border:1px solid #E8DFC8;font-weight:700;color:#92400E">${o.instrumento||'—'}</td>
+              <td style="padding:7px 10px;border:1px solid #E8DFC8"><div style="font-weight:600">${o.nome}</div><div style="color:#78716C;font-size:11px">${o.objeto?o.objeto.slice(0,60)+(o.objeto.length>60?'...':''):''}</div></td>
+              <td style="padding:7px 10px;border:1px solid #E8DFC8">${o.responsavel||'—'}</td>
+              <td style="padding:7px 10px;border:1px solid #E8DFC8;text-align:center;font-weight:700;color:${dr!==null&&dr<0?'#EF4444':'#78716C'}">${dr!==null?dr:'—'}</td>
+            </tr>`;
+          }).join('')}
+          <tr style="background:#E8DFC8;font-weight:700">
+            <td colspan="3" style="padding:7px 10px;border:1px solid #D4C9B0">Total</td>
+            <td style="padding:7px 10px;border:1px solid #D4C9B0;text-align:center">${lista.length}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  html+=`<div style="margin-bottom:24px">
+    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#92400E;border-bottom:1.5px solid #E8DFC8;padding-bottom:6px;margin-bottom:16px">📊 Controle de Obras</div>
+    ${tabelaControle(emAndamento,'✅ Obras em Andamento','#3B82F6')}
+    ${tabelaControle(atrasadoTermino,'⚠️ Obras em Atraso de Término','#EF4444')}
+    ${tabelaControle(atrasadoInicio,'🔴 Obras em Atraso de Início','#F59E0B')}
+  </div>`;
+
+  // FISCAIS
+  const porFiscal = {};
+  obras.forEach(o=>{
+    const f = (o.fiscal||'Sem fiscal').trim();
+    if(!f) return;
+    porFiscal[f] = (porFiscal[f]||0) + 1;
+  });
+  const fiscaisOrdenados = Object.entries(porFiscal).sort((a,b)=>b[1]-a[1]);
+  html+=`<div style="margin-bottom:24px">
+    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#92400E;border-bottom:1.5px solid #E8DFC8;padding-bottom:6px;margin-bottom:14px">👷 Planilha de Fiscais</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:#F5F0E8">
+          <th style="text-align:left;padding:8px 12px;border:1px solid #E8DFC8;font-weight:700">Fiscal</th>
+          <th style="text-align:center;padding:8px 12px;border:1px solid #E8DFC8;font-weight:700;width:120px">Qtd. de Obras</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${fiscaisOrdenados.map(([f,q],i)=>`<tr style="background:${i%2===0?'#FFFEF9':'#F5F0E8'}">
+          <td style="padding:8px 12px;border:1px solid #E8DFC8">${f}</td>
+          <td style="padding:8px 12px;border:1px solid #E8DFC8;text-align:center;font-weight:700">${q}</td>
+        </tr>`).join('')}
+        <tr style="background:#E8DFC8;font-weight:700">
+          <td style="padding:8px 12px;border:1px solid #D4C9B0">Total Geral</td>
+          <td style="padding:8px 12px;border:1px solid #D4C9B0;text-align:center">${obras.length}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>`;
+
+  // FORNECEDORES
+  const porForn = {};
+  obras.forEach(o=>{
+    const f = (o.fornecedor||'Sem fornecedor').trim();
+    if(!f) return;
+    porForn[f] = (porForn[f]||0) + 1;
+  });
+  const fornsOrdenados = Object.entries(porForn).sort((a,b)=>b[1]-a[1]);
+  html+=`<div style="margin-bottom:24px">
+    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#92400E;border-bottom:1.5px solid #E8DFC8;padding-bottom:6px;margin-bottom:14px">🏢 Planilha de Fornecedores</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:#F5F0E8">
+          <th style="text-align:left;padding:8px 12px;border:1px solid #E8DFC8;font-weight:700">Fornecedor</th>
+          <th style="text-align:center;padding:8px 12px;border:1px solid #E8DFC8;font-weight:700;width:120px">Qtd. de Obras</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${fornsOrdenados.map(([f,q],i)=>`<tr style="background:${i%2===0?'#FFFEF9':'#F5F0E8'}">
+          <td style="padding:8px 12px;border:1px solid #E8DFC8">${f}</td>
+          <td style="padding:8px 12px;border:1px solid #E8DFC8;text-align:center;font-weight:700">${q}</td>
+        </tr>`).join('')}
+        <tr style="background:#E8DFC8;font-weight:700">
+          <td style="padding:8px 12px;border:1px solid #D4C9B0">Total Geral</td>
+          <td style="padding:8px 12px;border:1px solid #D4C9B0;text-align:center">${Object.values(porForn).reduce((a,b)=>a+b,0)}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>`;
+
+  html+=`<div style="margin-top:24px;padding-top:12px;border-top:1px solid #E8DFC8;font-size:11px;color:#78716C;text-align:center">Relatório gerado pelo Diário de Obra — ${dataFmt}</div></div>`;
+
+  document.getElementById("relatorio-print").innerHTML=html;
+  abrirModal("modal-relatorio");
+}
+
+function imprimirRelatorio(){
+  const conteudo=document.getElementById("relatorio-print").innerHTML;
+  const janela=window.open('','_blank');
+  janela.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório Quinzenal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Source Sans 3',sans-serif;color:#1C1917;padding:24px;max-width:860px;margin:0 auto;}h1,h2,h3{font-family:'Playfair Display',serif;}@media print{body{padding:12px;} div{break-inside:avoid;}}</style>
+</head><body>${conteudo}</body></html>`);
+  janela.document.close();
+  janela.onload=()=>{janela.focus();janela.print();};
+}
+
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+carregar();
+</script>
+
+<!-- MODAL RELATÓRIO -->
+<div class="modal-overlay" id="modal-relatorio" style="z-index:600">
+  <div class="modal-box" style="max-width:780px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h3 style="font-size:22px">📊 Relatório Quinzenal</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-green no-print" onclick="imprimirRelatorio()">⬇️ Baixar PDF</button>
+        <button class="btn btn-ghost no-print" onclick="fecharModal('modal-relatorio')">✕ Fechar</button>
+      </div>
+    </div>
+    <div id="relatorio-print"></div>
+  </div>
+</div>
+</body>
+</html>
