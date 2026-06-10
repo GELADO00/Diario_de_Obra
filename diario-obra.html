@@ -299,6 +299,12 @@ input[type=range]{width:100%;accent-color:var(--amber);margin-top:8px;cursor:poi
           </select>
         </div>
         <div class="filtro-group">
+          <span class="filtro-label">Fornecedor</span>
+          <select class="filtro-select" id="filtro-forn" onchange="renderLista()">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="filtro-group">
           <span class="filtro-label">Pendência</span>
           <select class="filtro-select" id="filtro-pend" onchange="renderLista()">
             <option value="">Todas</option>
@@ -873,10 +879,13 @@ async function apagarObra(id){
 function popularFiltros(){
   const resps=[...new Set(obras.map(o=>o.responsavel).filter(Boolean))].sort();
   const fiscais=[...new Set(obras.map(o=>o.fiscal).filter(Boolean))].sort();
+  const forns=[...new Set(obras.map(o=>o.fornecedor).filter(Boolean))].sort();
   const fResp=document.getElementById("filtro-resp");
   const fFisc=document.getElementById("filtro-fiscal");
+  const fForn=document.getElementById("filtro-forn");
   fResp.innerHTML='<option value="">Todos</option>'+resps.map(r=>`<option value="${r}">${r}</option>`).join('');
   fFisc.innerHTML='<option value="">Todos</option>'+fiscais.map(f=>`<option value="${f}">${f.split(' ').slice(0,2).join(' ')}</option>`).join('');
+  if(fForn) fForn.innerHTML='<option value="">Todos</option>'+forns.map(f=>`<option value="${f}">${f}</option>`).join('');
   // Técnico sempre vê só suas próprias obras — reaplica após reconstruir as opções
   if(isTecnico()&&usuarioAtual){
     const nome=usuarioAtual.nome;
@@ -892,6 +901,7 @@ function limparFiltros(){
   document.getElementById("filtro-status").value="";
   document.getElementById("filtro-resp").value="";
   document.getElementById("filtro-fiscal").value="";
+  const ff=document.getElementById("filtro-forn"); if(ff) ff.value="";
   document.getElementById("filtro-pend").value="";
   if(document.getElementById("filtro-sem-retorno")) document.getElementById("filtro-sem-retorno").checked=false;
   renderLista();
@@ -917,6 +927,7 @@ function renderLista(){
   const fStatus=document.getElementById("filtro-status").value;
   const fResp=document.getElementById("filtro-resp").value;
   const fFisc=document.getElementById("filtro-fiscal").value;
+  const fForn=document.getElementById("filtro-forn")?.value||'';
 
   const mostrarFin = document.getElementById("mostrar-finalizadas").checked;
   const filtroSemComent = document.getElementById("filtro-sem-coment").checked;
@@ -934,6 +945,7 @@ function renderLista(){
     if(fStatus && o.status!==fStatus) return false;
     if(fResp && (o.responsavel||'').toLowerCase()!==fResp.toLowerCase()) return false;
     if(fFisc && o.fiscal!==fFisc) return false;
+    if(fForn && (o.fornecedor||'').toLowerCase()!==fForn.toLowerCase()) return false;
     if(filtroSemComent && temComentarioQuinzena(o)) return false;
     if(filtroSemRetorno && temRetornoSemanal(o)) return false;
     if(fPend){
