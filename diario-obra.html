@@ -1003,7 +1003,7 @@ function renderDetalhe(){ renderHeader(); renderAbas(); renderConteudo(); }
 function renderHeader(){
   const o=getObra(); if(!o) return;
   const dr=diasR(o.prazo, o.aditivoDias);
-  const opts=Object.entries(STATUS_CFG).map(([k,v])=>`<option value="${k}" ${o.status===k?"selected":""}>${v.label}</option>`).join("");
+  const opts=Object.entries(STATUS_CFG).filter(([k])=>k!=='concluida').map(([k,v])=>`<option value="${k}" ${o.status===k?"selected":""}>${v.label}</option>`).join("");
   const btnApagar=isAdmin()?`<button class="btn btn-red" style="font-size:12px" onclick="apagarObra(${o.id})">🗑️ Apagar</button>`:"";
   document.getElementById("det-header").innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:12px">
