@@ -1699,8 +1699,8 @@ function gerarRelatorio(){
 
   obrasAtivas.forEach((o,idx)=>{
     const cs = safeArr(o.comentariosQuinzenais).sort((a,b)=>a.data.localeCompare(b.data));
-    const ultimo = cs.length>0 ? cs[cs.length-1] : null;
-    const penultimo = cs.length>1 ? cs[cs.length-2] : null;
+    const atual   = cs.length>0 ? cs[cs.length-1] : null;
+    const anteriores = cs.slice(0, cs.length>0 ? cs.length-1 : 0);
 
     html+=`<div style="margin-bottom:20px;padding:16px;border:1px solid #E8DFC8;border-radius:8px;border-left:4px solid #92400E;">
       <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:900;color:#92400E;margin-bottom:10px">${idx+1}. ${o.nome}</div>
@@ -1712,13 +1712,13 @@ function gerarRelatorio(){
         ${o.instrumento?`<div><span style="font-weight:700">Instrumento:</span> ${o.instrumento}</div>`:''}
         ${o.idGed?`<div><span style="font-weight:700">ID no GED:</span> ${o.idGed}</div>`:''}
       </div>
-      ${penultimo?`<div style="margin-bottom:8px;padding:10px;background:#F5F0E8;border-radius:6px;font-size:12px">
-        <div style="font-weight:700;color:#78716C;margin-bottom:4px">Último comentário — ${fmtDate(penultimo.data)}:</div>
-        <div style="color:#444;line-height:1.6">${penultimo.texto}</div>
+      ${anteriores.length>0?`<div style="margin-bottom:8px;padding:10px;background:#F5F0E8;border-radius:6px;font-size:12px">
+        <div style="font-weight:700;color:#78716C;margin-bottom:6px">Comentários anteriores:</div>
+        <div style="color:#444;line-height:1.7">${anteriores.map(c=>c.texto).join(' ')}</div>
       </div>`:''}
-      ${ultimo?`<div style="padding:10px;background:#FEF3C7;border-radius:6px;font-size:12px;border-left:3px solid #D97706">
-        <div style="font-weight:700;color:#92400E;margin-bottom:4px">Comentário atual — ${fmtDate(ultimo.data)}:</div>
-        <div style="color:#1C1917;line-height:1.6">${ultimo.texto}</div>
+      ${atual?`<div style="padding:10px;background:#FEF3C7;border-radius:6px;font-size:12px;border-left:3px solid #D97706">
+        <div style="font-weight:700;color:#92400E;margin-bottom:4px">Novo comentário — ${fmtDate(atual.data)}:</div>
+        <div style="color:#1C1917;line-height:1.6">${atual.texto}</div>
       </div>`:`<div style="padding:10px;background:#FEE2E2;border-radius:6px;font-size:12px;color:#EF4444">⚠️ Sem comentário quinzenal registrado</div>`}
     </div>`;
   });
